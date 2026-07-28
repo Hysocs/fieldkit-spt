@@ -404,7 +404,9 @@ namespace FieldKit
                 UpdateVisibility(
                     target,
                     ReferenceEquals(target, visibilityFocus),
-                    now);
+                    now,
+                    usedByChams &&
+                    _chamsPerLimbVisibility.Value);
                 target.DisplayColor = GetDisplayColor(target);
 
                 if (usedByEsp && target.HealthDirty)

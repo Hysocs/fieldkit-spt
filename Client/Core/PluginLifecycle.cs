@@ -90,6 +90,9 @@ namespace FieldKit
             _chamsCharacters = Config.Bind(
                 "Chams", "Characters", true,
                 "Apply chams to the enabled character types.");
+            _chamsPerLimbVisibility = Config.Bind(
+                "Chams", "Per-Limb Visibility", true,
+                "Split skinned character surfaces by limb and color them from the same visibility checks as skeleton ESP.");
             _chamsShowPmc = Config.Bind(
                 "Chams", "Show PMCs", true, "Apply chams to PMCs.");
             _chamsShowScav = Config.Bind(
@@ -107,6 +110,11 @@ namespace FieldKit
                 new ConfigDescription(
                     "Overlay opacity.",
                     new AcceptableValueRange<float>(0.1f, 1f)));
+            _chamsLimbWidth = Config.Bind(
+                "Chams", "Limb Width", 0.045f,
+                new ConfigDescription(
+                    "World-space width of per-limb visibility chams.",
+                    new AcceptableValueRange<float>(0.01f, 0.12f)));
             _chamsCorpses = Config.Bind(
                 "Chams World", "Corpses", false,
                 "Apply a flat RGBA material to corpses.");
@@ -396,7 +404,7 @@ namespace FieldKit
 
         private void InstallAdminPatches()
         {
-            _harmony = new Harmony("com.fieldkit.spt.patches");
+            _harmony = new Harmony("com.hysocs.fieldkit.patches");
 
             try
             {

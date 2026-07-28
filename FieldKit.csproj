@@ -7,9 +7,9 @@
     <Product>FieldKit — Developer Tools for SPT</Product>
     <Description>In-raid administration and testing utilities for SPT users and mod developers.</Description>
     <Nullable>disable</Nullable>
-    <Authors>SPT</Authors>
+    <Authors>Hysocs</Authors>
     <Copyright></Copyright>
-    <AssemblyVersion>1.7.0</AssemblyVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Configurations>Debug;Release;Package</Configurations>
     <Version>$(AssemblyVersion)</Version>
@@ -114,9 +114,16 @@
     </Reference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <FieldKitClientInstallDir>$(ProjectDir)\..\..\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
+  </PropertyGroup>
+
   <Target Name="PostBuild"
           AfterTargets="PostBuildEvent"
           Condition="'$(SkipDeploy)' != 'true'">
-    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)\..\..\BepInEx\plugins\$(TargetFileName)&quot;" />
+    <MakeDir Directories="$(FieldKitClientInstallDir)" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(FieldKitClientInstallDir)"
+          SkipUnchangedFiles="true" />
   </Target>
 </Project>

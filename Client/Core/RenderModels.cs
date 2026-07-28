@@ -134,6 +134,8 @@ namespace FieldKit
             public bool[] ChamApplied;
             public bool[] ChamAppliedVisible;
             public bool[] ChamOriginalOcclusion;
+            public readonly List<LimbChamSkin> LimbChamSkins =
+                new List<LimbChamSkin>();
             public readonly HashSet<int> ColliderIds =
                 new HashSet<int>();
             public Transform Head;
@@ -154,6 +156,17 @@ namespace FieldKit
             public Transform RightKnee;
             public Transform RightCalf;
             public Transform RightFoot;
+        }
+
+        private sealed class LimbChamSkin
+        {
+            public SkinnedMeshRenderer Renderer;
+            public Mesh OriginalMesh;
+            public Material[] OriginalMaterials;
+            public Mesh InstanceMesh;
+            public BoneVisibility[] SubmeshLimbs;
+            public Material[] AppliedMaterials;
+            public bool OriginalOcclusion;
         }
 
         private sealed class ScopeOverlay

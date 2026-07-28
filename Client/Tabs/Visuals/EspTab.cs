@@ -104,6 +104,9 @@ namespace FieldKit
             BeginCategoryPanel("Chams");
             DrawOptionToggle(_chamsEnabled, " GPU Chams");
             DrawOptionToggle(_chamsCharacters, " Characters");
+            DrawOptionToggle(
+                _chamsPerLimbVisibility,
+                " Per-limb visibility");
             DrawColorColumnHeaders();
             _chamRoleListScroll = BeginVerticalScrollView(
                 _chamRoleListScroll,
@@ -137,10 +140,14 @@ namespace FieldKit
                 _chamsOpacity.Value.ToString("0.00"));
             _chamsOpacity.Value = GUILayout.HorizontalSlider(
                 _chamsOpacity.Value, 0.1f, 1f);
+            DrawOptionSlider(
+                "Limb width",
+                _chamsLimbWidth, 0.01f, 0.12f, "0.000");
             if (DrawResetGroupButton())
             {
                 _chamsEnabled.Value = false;
                 _chamsCharacters.Value = true;
+                _chamsPerLimbVisibility.Value = true;
                 _chamsShowPmc.Value = true;
                 _chamsShowScav.Value = true;
                 _chamsShowBoss.Value = true;
@@ -157,6 +164,7 @@ namespace FieldKit
                 }
                 _chamsMaxDistance.Value = 250f;
                 _chamsOpacity.Value = 0.65f;
+                _chamsLimbWidth.Value = 0.045f;
                 ResetChamColors();
                 ResetWorldChamSettings();
             }

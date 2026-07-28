@@ -937,7 +937,8 @@ namespace FieldKit
         private void UpdateVisibility(
             Target target,
             bool highPriority,
-            float now)
+            float now,
+            bool requirePerBone = false)
         {
             if (!_visibilityCheck.Value)
             {
@@ -973,7 +974,9 @@ namespace FieldKit
 
             bool visible;
 
-            if (!highPriority)
+            bool detailed = highPriority || requirePerBone;
+
+            if (!detailed)
             {
                 visible =
                     IsBoneVisible(target, target.Head, _camera) ||
@@ -1003,7 +1006,7 @@ namespace FieldKit
                 visible = mask != BoneVisibility.None;
             }
 
-            if (!highPriority)
+            if (!detailed)
             {
                 target.HasPerBoneVisibility = false;
                 target.VisibleBones = BoneVisibility.None;

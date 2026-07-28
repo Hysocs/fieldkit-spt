@@ -15,15 +15,36 @@ administrators, and mod developers.
 ## Installation
 
 Extract the release ZIP into your SPT installation directory, then restart the
-SPT server and game.
+SPT server and game. The archive installs:
+
+```text
+BepInEx/plugins/Hysocs-FieldKit/FieldKit.dll
+user/mods/HysocsFieldKit/FieldKit.Server.dll
+```
+
+To uninstall FieldKit, remove the `Hysocs-FieldKit` and `HysocsFieldKit`
+folders shown above.
+
+## Usage
+
+- Press `Insert` while in a raid to open or close the FieldKit menu.
+- Press `Home` to toggle ESP.
+- Press `F12` to open the BepInEx configuration menu, where FieldKit settings
+  and hotkeys can also be changed.
 
 ## Building
 
-Open `FieldKit.sln` or build `FieldKit.csproj`.
+Open `FieldKit.sln` and build the entire solution in the `Release`
+configuration, or run:
 
-A Release build creates `dist/FieldKit-1.7.0.zip` with the ready-to-install SPT
-directory structure. Use `-p:SkipDeploy=true` to build without installing or
-packaging the mod.
+```powershell
+dotnet build FieldKit.sln -c Release -p:SkipDeploy=true
+```
+
+The Release solution build creates `dist/FieldKit-1.0.0.zip` with both DLLs in
+the ready-to-install SPT directory structure. `SkipDeploy=true` prevents the
+build from copying files into the active SPT installation; use
+`SkipPackage=true` if a ZIP is not wanted.
 
 ## License
 

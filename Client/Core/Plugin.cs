@@ -2,9 +2,9 @@
 namespace FieldKit
 {
     [BepInPlugin(
-        "com.fieldkit.spt",
-        "FieldKit — Developer Tools for SPT",
-        "1.7.0")]
+        "com.hysocs.fieldkit",
+        "Hysocs-FieldKit",
+        "1.0.0")]
     public sealed partial class Plugin : BaseUnityPlugin
     {
         internal static ManualLogSource LogSource;
@@ -40,11 +40,13 @@ namespace FieldKit
         private ConfigEntry<bool> _noWeight;
         private ConfigEntry<bool> _chamsEnabled;
         private ConfigEntry<bool> _chamsCharacters;
+        private ConfigEntry<bool> _chamsPerLimbVisibility;
         private ConfigEntry<bool> _chamsShowPmc;
         private ConfigEntry<bool> _chamsShowScav;
         private ConfigEntry<bool> _chamsShowBoss;
         private ConfigEntry<float> _chamsMaxDistance;
         private ConfigEntry<float> _chamsOpacity;
+        private ConfigEntry<float> _chamsLimbWidth;
         private ConfigEntry<bool> _chamsCorpses;
         private ConfigEntry<bool> _chamsLoot;
         private ConfigEntry<bool> _cullGrass;

@@ -118,6 +118,14 @@ namespace FieldKit
 
         private void ApplyTargetChams(Target target)
         {
+            if (_chamsPerLimbVisibility.Value)
+            {
+                RestoreTargetMaterialChams(target);
+                ApplyTargetLimbChams(target);
+                return;
+            }
+
+            DestroyTargetLimbChams(target);
             EnsureChamRenderers(target);
 
             if (target.ChamRenderers == null ||
@@ -257,7 +265,7 @@ namespace FieldKit
             return result;
         }
 
-        private static void RestoreTargetChams(Target target)
+        private static void RestoreTargetMaterialChams(Target target)
         {
             if (!target.ChamsActive ||
                 target.ChamRenderers == null ||
@@ -285,6 +293,12 @@ namespace FieldKit
             }
 
             target.ChamsActive = false;
+        }
+
+        private static void RestoreTargetChams(Target target)
+        {
+            RestoreTargetMaterialChams(target);
+            DestroyTargetLimbChams(target);
         }
 
         private void RestoreAllChams()

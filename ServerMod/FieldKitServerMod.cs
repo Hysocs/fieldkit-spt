@@ -16,20 +16,21 @@ namespace FieldKit.Server;
 public record FieldKitServerMetadata : AbstractModMetadata
 {
     public override string ModGuid { get; init; } =
-        "com.fieldkit.spt";
-    public override string Name { get; init; } = "FieldKitServer";
-    public override string Author { get; init; } = "FieldKit";
+        "com.hysocs.fieldkit";
+    public override string Name { get; init; } = "HysocsFieldKit";
+    public override string Author { get; init; } = "Hysocs";
     public override List<string>? Contributors { get; init; }
     public override SemanticVersioning.Version Version { get; init; } =
-        new("1.7.0");
+        new("1.0.0");
     public override SemanticVersioning.Range SptVersion { get; init; } =
         new("~4.0.0");
     public override List<string>? Incompatibilities { get; init; }
     public override Dictionary<string, SemanticVersioning.Range>?
         ModDependencies { get; init; }
-    public override string? Url { get; init; }
+    public override string? Url { get; init; } =
+        "https://github.com/Hysocs/fieldkit-spt";
     public override bool? IsBundleMod { get; init; }
-    public override string License { get; init; } = "MIT";
+    public override string License { get; init; } = "Apache-2.0";
 }
 
 [Injectable]
