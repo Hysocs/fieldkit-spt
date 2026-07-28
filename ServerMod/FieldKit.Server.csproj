@@ -59,16 +59,16 @@
     <Delete Files="$(FieldKitPackageZip)" />
 
     <MakeDir Directories="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
-    <MakeDir Directories="$(FieldKitPackageRoot)\user\mods\HysocsFieldKit" />
+    <MakeDir Directories="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
 
     <Copy SourceFiles="$(FieldKitClientDll)"
           DestinationFolder="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
     <Copy SourceFiles="$(TargetPath)"
-          DestinationFolder="$(FieldKitPackageRoot)\user\mods\HysocsFieldKit" />
+          DestinationFolder="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
     <Copy SourceFiles="$(FieldKitLicense)"
           DestinationFolder="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
     <Copy SourceFiles="$(FieldKitLicense)"
-          DestinationFolder="$(FieldKitPackageRoot)\user\mods\HysocsFieldKit" />
+          DestinationFolder="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
 
     <ZipDirectory SourceDirectory="$(FieldKitPackageRoot)"
                   DestinationFile="$(FieldKitPackageZip)"

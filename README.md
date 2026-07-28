@@ -19,7 +19,7 @@ SPT server and game. The archive installs:
 
 ```text
 BepInEx/plugins/Hysocs-FieldKit/FieldKit.dll
-user/mods/HysocsFieldKit/FieldKit.Server.dll
+SPT/user/mods/HysocsFieldKit/FieldKit.Server.dll
 ```
 
 To uninstall FieldKit, remove the `Hysocs-FieldKit` and `HysocsFieldKit`
