@@ -1,0 +1,72 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Library</OutputType>
+    <AssemblyName>FieldKit.Server</AssemblyName>
+    <RootNamespace>FieldKit.Server</RootNamespace>
+    <Version>1.7.0</Version>
+    <OutputPath>bin\$(Configuration)\FieldKit.Server\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FieldKit.csproj"
+                      ReferenceOutputAssembly="false" />
+    <Reference Include="SemanticVersioning">
+      <HintPath>..\..\..\SPT\SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Common">
+      <HintPath>..\..\..\SPT\SPTarkov.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.DI">
+      <HintPath>..\..\..\SPT\SPTarkov.DI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Core">
+      <HintPath>..\..\..\SPT\SPTarkov.Server.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <FieldKitServerInstallDir>$(ProjectDir)..\..\..\SPT\user\mods\FieldKitServer</FieldKitServerInstallDir>
+    <FieldKitClientDll>$(ProjectDir)..\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
+    <FieldKitPackageRoot>$(ProjectDir)..\dist\FieldKit-$(Version)</FieldKitPackageRoot>
+    <FieldKitPackageZip>$(ProjectDir)..\dist\FieldKit-$(Version).zip</FieldKitPackageZip>
+  </PropertyGroup>
+
+  <Target Name="DeployFieldKitServerMod"
+          AfterTargets="Build"
+          Condition="'$(SkipDeploy)' != 'true'">
+    <MakeDir Directories="$(FieldKitServerInstallDir)" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(FieldKitServerInstallDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CreateFieldKitReleasePackage"
+          AfterTargets="DeployFieldKitServerMod"
+          Condition="'$(Configuration)' == 'Release' and '$(SkipDeploy)' != 'true'">
+    <RemoveDir Directories="$(FieldKitPackageRoot)" />
+    <Delete Files="$(FieldKitPackageZip)" />
+
+    <MakeDir Directories="$(FieldKitPackageRoot)\BepInEx\plugins" />
+    <MakeDir Directories="$(FieldKitPackageRoot)\user\mods\FieldKitServer" />
+
+    <Copy SourceFiles="$(FieldKitClientDll)"
+          DestinationFolder="$(FieldKitPackageRoot)\BepInEx\plugins" />
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFolder="$(FieldKitPackageRoot)\user\mods\FieldKitServer" />
+
+    <ZipDirectory SourceDirectory="$(FieldKitPackageRoot)"
+                  DestinationFile="$(FieldKitPackageZip)"
+                  Overwrite="true" />
+
+    <Message Importance="high"
+             Text="FieldKit release package created: $(FieldKitPackageZip)" />
+  </Target>
+</Project>

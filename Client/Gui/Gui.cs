@@ -1,0 +1,339 @@
+
+namespace FieldKit
+{
+    public sealed partial class Plugin
+    {
+        private static readonly string[] MenuTabs =
+        {
+            "Character",
+            "Entities",
+            "Loot",
+            "Other"
+        };
+
+        private const float PreferredMenuWidth = 1000f;
+        private const float PreferredMenuHeight = 820f;
+        private const float MinimumMenuWidth = 680f;
+        private const float MinimumMenuHeight = 520f;
+        private static float MenuWidth =>
+            Mathf.Clamp(
+                Screen.width - 32f,
+                Mathf.Min(MinimumMenuWidth, Screen.width),
+                PreferredMenuWidth);
+        private float CurrentMenuWidth =>
+            Mathf.Clamp(
+                Screen.width - 32f,
+                Mathf.Min(MinimumMenuWidth, Screen.width),
+                PreferredMenuWidth);
+        private static float MenuHeight =>
+            Mathf.Clamp(
+                Screen.height - 32f,
+                Mathf.Min(MinimumMenuHeight, Screen.height),
+                PreferredMenuHeight);
+        private static float MenuColumnWidth =>
+            Mathf.Max(300f, (MenuWidth - 48f) * 0.5f);
+        private const float AttachedInfoWidth = 285f;
+        private ConfigEntry<float> _menuWindowX;
+        private ConfigEntry<float> _menuWindowY;
+        private ConfigEntry<float> _diagnosticsWindowX;
+        private ConfigEntry<float> _diagnosticsWindowY;
+        private ConfigEntry<float> _colorPickerWindowX;
+        private ConfigEntry<float> _colorPickerWindowY;
+        private ConfigEntry<float> _entityInspectorWindowX;
+        private ConfigEntry<float> _entityInspectorWindowY;
+        private ConfigEntry<string> _guiPrimaryColor;
+        private ConfigEntry<int> _savedMenuTab;
+        private int _menuTab;
+        private int _characterSection;
+        private bool _menuOpen;
+        private Rect _menuRect =
+            new Rect(30f, 30f, MenuWidth, MenuHeight);
+        private CursorLockMode _previousCursorLock;
+        private bool _previousCursorVisible;
+        private UnityEngine.EventSystems.EventSystem
+            _blockedEventSystem;
+        private bool _blockedEventSystemWasEnabled;
+        private GUISkin _adminSkin;
+        private GUIStyle _tabStyle;
+        private GUIStyle _sectionTitleStyle;
+        private GUIStyle _resetButtonStyle;
+        private GUIStyle _dropdownButtonStyle;
+        private GUIStyle _dropdownArrowStyle;
+        private GUIStyle _dropdownMenuStyle;
+        private GUIStyle _dropdownItemStyle;
+        private GUIStyle _optionTooltipStyle;
+        private string _pendingOptionTooltip;
+        private float _optionTooltipHoverStarted;
+        private bool _categoryResetRequested;
+        private string _openDropdownId;
+        private Rect _attachedInfoRect;
+        private Rect _colorPickerRect =
+            new Rect(805f, 270f, 390f, 250f);
+        private readonly List<Texture2D> _themeTextures =
+            new List<Texture2D>(16);
+
+        private void ConfigureGuiSettings()
+        {
+            _menuWindowX = Config.Bind(
+                "GUI Layout", "Main Window X", 30f,
+                "Saved horizontal position of the main admin window.");
+            _menuWindowY = Config.Bind(
+                "GUI Layout", "Main Window Y", 30f,
+                "Saved vertical position of the main admin window.");
+            _diagnosticsWindowX = Config.Bind(
+                "GUI Layout", "Weapon Diagnostics X", 670f,
+                "Saved horizontal position of weapon diagnostics.");
+            _diagnosticsWindowY = Config.Bind(
+                "GUI Layout", "Weapon Diagnostics Y", 30f,
+                "Saved vertical position of weapon diagnostics.");
+            _colorPickerWindowX = Config.Bind(
+                "GUI Layout", "Color Picker X", 805f,
+                "Saved horizontal position of the color picker.");
+            _colorPickerWindowY = Config.Bind(
+                "GUI Layout", "Color Picker Y", 270f,
+                "Saved vertical position of the color picker.");
+            _entityInspectorWindowX = Config.Bind(
+                "GUI Layout", "Entity Inspector X", 30f,
+                "Saved horizontal position of the entity inspector.");
+            _entityInspectorWindowY = Config.Bind(
+                "GUI Layout", "Entity Inspector Y", 30f,
+                "Saved vertical position of the entity inspector.");
+            _guiPrimaryColor = Config.Bind(
+                "GUI Appearance", "Primary Color", "#78CFF5FF",
+                "Primary RGBA accent color used by the FieldKit menu.");
+            _guiPrimaryColor.SettingChanged +=
+                OnGuiPrimaryColorChanged;
+            _savedMenuTab = Config.Bind(
+                "GUI Layout", "Selected Tab", 0,
+                new ConfigDescription(
+                    "Last selected admin-tools tab.",
+                    new AcceptableValueRange<int>(
+                        0,
+                        MenuTabs.Length - 1)));
+
+            _menuRect.x = _menuWindowX.Value;
+            _menuRect.y = _menuWindowY.Value;
+            _weaponDiagnosticsRect.x =
+                _diagnosticsWindowX.Value;
+            _weaponDiagnosticsRect.y =
+                _diagnosticsWindowY.Value;
+            _colorPickerRect.x = _colorPickerWindowX.Value;
+            _colorPickerRect.y = _colorPickerWindowY.Value;
+            _entityInspectorRect.x = _entityInspectorWindowX.Value;
+            _entityInspectorRect.y = _entityInspectorWindowY.Value;
+            _menuTab = Mathf.Clamp(
+                _savedMenuTab.Value,
+                0,
+                MenuTabs.Length - 1);
+        }
+
+        private void DrawMenu(int windowId)
+        {
+            int selectedTab = GUILayout.Toolbar(
+                _menuTab,
+                MenuTabs,
+                _tabStyle);
+            if (selectedTab != _menuTab)
+            {
+                _menuTab = selectedTab;
+                _savedMenuTab.Value = _menuTab;
+                CloseDropdown();
+            }
+            GUILayout.Space(8f);
+
+            switch (_menuTab)
+            {
+                case 1:
+                    DrawEntityMenu();
+                    break;
+                case 2:
+                    DrawLootMenu();
+                    break;
+                case 3:
+                    DrawOtherMenu();
+                    break;
+                default:
+                    DrawCharacterHub();
+                    break;
+            }
+
+            DrawOptionTooltip();
+            GUI.DragWindow(new Rect(0f, 0f, _menuRect.width, 24f));
+        }
+
+        private void UpdateMenuGeometry()
+        {
+            _menuRect.width = CurrentMenuWidth;
+            _menuRect.height = MenuHeight;
+            _menuRect.x = Mathf.Clamp(
+                _menuRect.x,
+                0f,
+                Mathf.Max(0f, Screen.width - _menuRect.width));
+            _menuRect.y = Mathf.Clamp(
+                _menuRect.y,
+                0f,
+                Mathf.Max(0f, Screen.height - _menuRect.height));
+        }
+
+        private static void BeginCategoryColumns()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical(
+                GUILayout.Width(MenuColumnWidth));
+        }
+
+        private static void NextCategoryColumn()
+        {
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical(
+                GUILayout.Width(MenuColumnWidth));
+        }
+
+        private static void EndCategoryColumns()
+        {
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+        }
+
+        private void BeginCategoryPanel(
+            string title,
+            bool showResetButton = true)
+        {
+            GUILayout.BeginVertical(
+                GUI.skin.box,
+                GUILayout.Width(MenuColumnWidth));
+            _categoryResetRequested = false;
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(
+                title,
+                _sectionTitleStyle,
+                GUILayout.ExpandWidth(true));
+            if (showResetButton)
+            {
+                _categoryResetRequested = GUILayout.Button(
+                    new GUIContent("\u21BB", "Reset group"),
+                    _resetButtonStyle,
+                    GUILayout.Width(28f),
+                    GUILayout.Height(28f));
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private static void EndCategoryPanel()
+        {
+            GUILayout.EndVertical();
+        }
+
+        private bool DrawResetGroupButton()
+        {
+            bool resetRequested = _categoryResetRequested;
+            _categoryResetRequested = false;
+            return resetRequested;
+        }
+
+        private void DrawCharacterHub()
+        {
+            _characterSection = GUILayout.Toolbar(
+                _characterSection,
+                new[] { "Character", "Weapons" });
+            GUILayout.Space(6f);
+
+            if (_characterSection == 0)
+                DrawCharacterMenu();
+            else
+                DrawWeaponMenu();
+        }
+
+        private void DrawAttachedTabInfoPanel()
+        {
+            if (!_menuOpen ||
+                (_menuTab != 0 &&
+                 !(_menuTab == 1 &&
+                   _entityListSection == 0)))
+                return;
+
+            float height = _menuTab == 0
+                ? _characterSection == 0 ? 205f : 150f
+                : 175f;
+            _attachedInfoRect = new Rect(
+                _menuRect.xMax + AttachedInfoWidth + 8f <= Screen.width
+                    ? _menuRect.xMax + 8f
+                    : Mathf.Max(0f, _menuRect.x - AttachedInfoWidth - 8f),
+                _menuRect.y + 34f,
+                AttachedInfoWidth,
+                height);
+
+            Color previousColor = GUI.color;
+            GUI.color = new Color(1f, 1f, 1f, 0.82f);
+            GUI.Window(
+                731906 + _menuTab + _entityListSection,
+                _attachedInfoRect,
+                DrawAttachedTabInfoWindow,
+                _menuTab == 0
+                    ? _characterSection == 0
+                        ? "Character Status"
+                        : "Current Weapon"
+                    : "Visuals Quick Info");
+            GUI.color = previousColor;
+        }
+
+        private void DrawAttachedTabInfoWindow(int windowId)
+        {
+            if (_menuTab == 0)
+            {
+                if (_characterSection == 0)
+                    DrawCharacterStatus();
+                else
+                    DrawCurrentWeaponStatus();
+            }
+            else if (_menuTab == 1 &&
+                     _entityListSection == 0)
+                DrawEspQuickInfo();
+        }
+
+        private void PersistGuiLayout()
+        {
+            if (_menuWindowX == null)
+                return;
+
+            if (!Mathf.Approximately(
+                _menuWindowX.Value,
+                _menuRect.x))
+                _menuWindowX.Value = _menuRect.x;
+            if (!Mathf.Approximately(
+                _menuWindowY.Value,
+                _menuRect.y))
+                _menuWindowY.Value = _menuRect.y;
+            if (!Mathf.Approximately(
+                _diagnosticsWindowX.Value,
+                _weaponDiagnosticsRect.x))
+                _diagnosticsWindowX.Value =
+                    _weaponDiagnosticsRect.x;
+            if (!Mathf.Approximately(
+                _diagnosticsWindowY.Value,
+                _weaponDiagnosticsRect.y))
+                _diagnosticsWindowY.Value =
+                    _weaponDiagnosticsRect.y;
+            if (!Mathf.Approximately(
+                _colorPickerWindowX.Value,
+                _colorPickerRect.x))
+                _colorPickerWindowX.Value = _colorPickerRect.x;
+            if (!Mathf.Approximately(
+                _colorPickerWindowY.Value,
+                _colorPickerRect.y))
+                _colorPickerWindowY.Value = _colorPickerRect.y;
+            if (!Mathf.Approximately(
+                _entityInspectorWindowX.Value,
+                _entityInspectorRect.x))
+                _entityInspectorWindowX.Value =
+                    _entityInspectorRect.x;
+            if (!Mathf.Approximately(
+                _entityInspectorWindowY.Value,
+                _entityInspectorRect.y))
+                _entityInspectorWindowY.Value =
+                    _entityInspectorRect.y;
+        }
+
+    }
+}
