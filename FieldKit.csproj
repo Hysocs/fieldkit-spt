@@ -16,6 +16,7 @@
     <LangVersion>latest</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -115,11 +116,11 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <FieldKitClientInstallDir>$(ProjectDir)\..\..\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
+    <FieldKitClientInstallDir>$(MSBuildProjectDirectory)\..\..\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
   </PropertyGroup>
 
-  <Target Name="PostBuild"
-          AfterTargets="PostBuildEvent"
+  <Target Name="DeployFieldKitClient"
+          AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(SkipDeploy)' != 'true'">
     <MakeDir Directories="$(FieldKitClientInstallDir)" />
     <Copy SourceFiles="$(TargetPath)"

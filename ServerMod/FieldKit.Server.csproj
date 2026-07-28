@@ -36,15 +36,15 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <FieldKitServerInstallDir>$(ProjectDir)..\..\..\SPT\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
-    <FieldKitClientDll>$(ProjectDir)..\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
-    <FieldKitLicense>$(ProjectDir)..\LICENSE</FieldKitLicense>
-    <FieldKitPackageRoot>$(ProjectDir)..\dist\FieldKit-$(Version)</FieldKitPackageRoot>
-    <FieldKitPackageZip>$(ProjectDir)..\dist\FieldKit-$(Version).zip</FieldKitPackageZip>
+    <FieldKitServerInstallDir>$(MSBuildProjectDirectory)\..\..\..\SPT\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
+    <FieldKitClientDll>$(MSBuildProjectDirectory)\..\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
+    <FieldKitLicense>$(MSBuildProjectDirectory)\..\LICENSE</FieldKitLicense>
+    <FieldKitPackageRoot>$(MSBuildProjectDirectory)\..\dist\FieldKit-$(Version)</FieldKitPackageRoot>
+    <FieldKitPackageZip>$(MSBuildProjectDirectory)\..\dist\FieldKit-$(Version).zip</FieldKitPackageZip>
   </PropertyGroup>
 
   <Target Name="DeployFieldKitServerMod"
-          AfterTargets="Build"
+          AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(SkipDeploy)' != 'true'">
     <MakeDir Directories="$(FieldKitServerInstallDir)" />
     <Copy SourceFiles="$(TargetPath)"
@@ -53,7 +53,7 @@
   </Target>
 
   <Target Name="CreateFieldKitReleasePackage"
-          AfterTargets="Build"
+          AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(Configuration)' == 'Release' and '$(SkipPackage)' != 'true'">
     <RemoveDir Directories="$(FieldKitPackageRoot)" />
     <Delete Files="$(FieldKitPackageZip)" />
