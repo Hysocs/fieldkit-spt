@@ -84,6 +84,7 @@ namespace FieldKit
                 new List<TraderControllerClass>(256);
         private Vector2 _lootCategoryScroll;
         private Vector2 _lootSettingsScroll;
+        private float _lootListViewportHeight = 500f;
         private int _lootMenuSection;
         private int _selectedLootRoot;
         private string _lootSearch = "";

@@ -34,20 +34,6 @@ namespace FieldKit
 
                 _harmony.Patch(
                     AccessTools.Method(
-                        typeof(BotsGroup),
-                        nameof(BotsGroup.AddEnemy),
-                        new[]
-                        {
-                            typeof(IPlayer),
-                            typeof(EBotEnemyCause)
-                        }),
-                    prefix: new HarmonyMethod(
-                        AccessTools.Method(
-                            typeof(Plugin),
-                            nameof(PreventAiEnemyAddition))));
-
-                _harmony.Patch(
-                    AccessTools.Method(
                         typeof(GamePlayerOwner),
                         nameof(GamePlayerOwner.TranslateCommand)),
                     prefix: new HarmonyMethod(

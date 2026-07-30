@@ -6,15 +6,21 @@
     <OutputType>Library</OutputType>
     <AssemblyName>FieldKit.Server</AssemblyName>
     <RootNamespace>FieldKit.Server</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <OutputPath>bin\$(Configuration)\FieldKit.Server\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <!-- The ZIP is a build output that Visual Studio's fast check cannot
          track, so always let MSBuild evaluate the packaging target. -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
+    <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.Server.ForceRebuild.g.cs</FieldKitForceRebuildFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="$(FieldKitForceRebuildFile)"
+             AutoGen="true"
+             DesignTime="false"
+             Visible="false" />
     <ProjectReference Include="..\FieldKit.csproj"
                       ReferenceOutputAssembly="false" />
     <Reference Include="SemanticVersioning">
@@ -44,12 +50,23 @@
   </PropertyGroup>
 
   <Target Name="DeployFieldKitServerMod"
-          AfterTargets="CopyFilesToOutputDirectory"
+          AfterTargets="Build"
           Condition="'$(SkipDeploy)' != 'true'">
     <MakeDir Directories="$(FieldKitServerInstallDir)" />
     <Copy SourceFiles="$(TargetPath)"
           DestinationFolder="$(FieldKitServerInstallDir)"
-          SkipUnchangedFiles="true" />
+          SkipUnchangedFiles="false" />
+    <Message Importance="high"
+             Text="FieldKit server mod deployed: $(FieldKitServerInstallDir)\$(TargetFileName)" />
+  </Target>
+
+  <Target Name="ForceFieldKitServerRebuild"
+          BeforeTargets="CoreCompile"
+          Condition="'$(SkipForceRebuild)' != 'true'">
+    <MakeDir Directories="$(FieldKitForceRebuildDir)" />
+    <Touch Files="$(FieldKitForceRebuildFile)"
+           AlwaysCreate="true"
+           ForceTouch="true" />
   </Target>
 
   <Target Name="CreateFieldKitReleasePackage"

@@ -67,6 +67,17 @@ namespace FieldKit
                 return;
             }
 
+            if (Event.current.type == EventType.Repaint)
+            {
+                Rect lastHeaderRect = GUILayoutUtility.GetLastRect();
+                if (lastHeaderRect.yMax > 0f)
+                {
+                    _lootListViewportHeight = Mathf.Max(
+                        120f,
+                        _menuRect.height - lastHeaderRect.yMax - 28f);
+                }
+            }
+
             _selectedLootRoot = Mathf.Clamp(
                 _selectedLootRoot, -1, _lootRoots.Count - 1);
 
@@ -77,19 +88,22 @@ namespace FieldKit
                     Mathf.Clamp(
                         MenuWidth * 0.27f,
                         185f,
-                        255f)));
+                        255f)),
+                GUILayout.ExpandHeight(true));
             GUILayout.Label("Categories", _sectionTitleStyle);
             _lootCategoryScroll = BeginVerticalScrollView(
                 _lootCategoryScroll,
-                GUILayout.Height(
-                    Mathf.Max(300f, MenuHeight - 190f)));
+                GUILayout.Height(_lootListViewportHeight));
             DrawAllLootRootButton();
             for (int i = 0; i < _lootRoots.Count; i++)
                 DrawLootRootButton(i);
+            GUILayout.Space(12f);
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
 
-            GUILayout.BeginVertical(GUI.skin.box);
+            GUILayout.BeginVertical(
+                GUI.skin.box,
+                GUILayout.ExpandHeight(true));
             if (_selectedLootRoot < 0)
             {
                 GUILayout.Label(
@@ -107,8 +121,7 @@ namespace FieldKit
             }
             _lootScroll = BeginVerticalScrollView(
                 _lootScroll,
-                GUILayout.Height(
-                    Mathf.Max(300f, MenuHeight - 190f)));
+                GUILayout.Height(_lootListViewportHeight));
             if (_selectedLootRoot < 0)
             {
                 for (int i = 0; i < _lootRoots.Count; i++)
@@ -119,6 +132,7 @@ namespace FieldKit
                 DrawLootCategory(
                     _lootRoots[_selectedLootRoot], 0, true);
             }
+            GUILayout.Space(18f);
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();

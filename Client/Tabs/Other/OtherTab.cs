@@ -5,7 +5,6 @@ namespace FieldKit
     {
         private ConfigEntry<bool> _lootLivingAi;
         private ConfigEntry<bool> _holdLivingAiStill;
-        private ConfigEntry<bool> _allAiFriendly;
         private ConfigEntry<bool> _forceThermalVision;
         private ConfigEntry<bool> _forceNightVision;
         private ConfigEntry<bool> _cleanThermalVision;
@@ -24,8 +23,15 @@ namespace FieldKit
         private InventoryController _livingLootOriginalController;
         private bool _livingLootOriginalControllerLocked;
         private bool _livingLootOpening;
-        private bool _friendlyAiRefreshRequested;
-        private bool _lastAllAiFriendly;
+        private BotOwner _livingLootPausedBot;
+        private EBotState _livingLootPausedBotState;
+        private readonly List<KeyValuePair<Animator, float>>
+            _livingLootPausedAnimators =
+                new List<KeyValuePair<Animator, float>>();
+        private static readonly MethodInfo SetBotStateMethod =
+            AccessTools.PropertySetter(
+                typeof(BotOwner),
+                nameof(BotOwner.BotState));
         private ThermalVision _configuredThermalVision;
         private bool _originalThermalOn;
         private bool _originalThermalNoise;
@@ -73,12 +79,7 @@ namespace FieldKit
                 "Other",
                 "Hold Living AI Still While Looting",
                 true,
-                "Continuously pause the selected AI's movement while its inventory is open.");
-            _allAiFriendly = Config.Bind(
-                "Other",
-                "All AI Are Friendly",
-                false,
-                "Prevent every AI from treating players or other AI as enemies.");
+                "Temporarily pause the selected AI's brain and animation while its inventory is open.");
             _forceThermalVision = Config.Bind(
                 "Other",
                 "Force Thermal Vision",
@@ -122,16 +123,6 @@ namespace FieldKit
                 false,
                 "Inspect the collider under the center-screen aiming ray in a persistent draggable window.");
             _lastLootLivingAi = _lootLivingAi.Value;
-            _allAiFriendly.SettingChanged +=
-                OnFriendlyAiSettingChanged;
-        }
-
-        private void OnFriendlyAiSettingChanged(
-            object sender,
-            EventArgs args)
-        {
-            _friendlyAiRefreshRequested =
-                _allAiFriendly.Value;
         }
 
     }

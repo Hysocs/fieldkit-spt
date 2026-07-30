@@ -41,15 +41,6 @@ namespace FieldKit
 
             EndCategoryPanel();
             GUILayout.Space(8f);
-            BeginCategoryPanel("AI Behavior");
-
-            DrawOptionToggle(_allAiFriendly, " All AI are friendly");
-
-            if (DrawResetGroupButton())
-                _allAiFriendly.Value = false;
-
-            EndCategoryPanel();
-            GUILayout.Space(8f);
             BeginCategoryPanel("Raid & World", false);
 
             if (GUILayout.Button("Unlock all doors"))

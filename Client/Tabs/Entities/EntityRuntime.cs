@@ -49,7 +49,16 @@ namespace FieldKit
 
             _liveEntityEntries.Sort(
                 (left, right) =>
-                    left.Distance.CompareTo(right.Distance));
+                {
+                    int kindComparison = string.Compare(
+                        left.Kind,
+                        right.Kind,
+                        StringComparison.OrdinalIgnoreCase);
+                    return kindComparison != 0
+                        ? kindComparison
+                        : left.Distance.CompareTo(right.Distance);
+                });
+
         }
 
         private void AddLiveEntityEntry(
@@ -76,10 +85,211 @@ namespace FieldKit
                     Player = player,
                     Name = name,
                     Kind = kind,
+                    BotOwner =
+                        player.AIData == null ||
+                        !player.AIData.IsAI
+                            ? null
+                            : player.AIData.BotOwner,
                     Distance = Vector3.Distance(
                         origin,
                         player.Position)
                 });
+        }
+
+        private void SetEntityAiEnabled(
+            BotOwner botOwner,
+            bool enabled)
+        {
+            if (botOwner == null || botOwner.IsDead)
+                return;
+
+            if (!enabled)
+            {
+                if (_disabledEntityAi.ContainsKey(botOwner))
+                    return;
+
+                EBotState state =
+                    ReferenceEquals(
+                        botOwner,
+                        _livingLootPausedBot)
+                        ? _livingLootPausedBotState
+                        : botOwner.BotState;
+                _disabledEntityAi.Add(botOwner, state);
+                botOwner.StopMove();
+                if (botOwner.BotState != EBotState.NonActive)
+                    botOwner.Disable();
+                return;
+            }
+
+            EBotState originalState;
+            if (!_disabledEntityAi.TryGetValue(
+                    botOwner,
+                    out originalState))
+                return;
+
+            _disabledEntityAi.Remove(botOwner);
+            if (ReferenceEquals(
+                    botOwner,
+                    _livingLootPausedBot))
+                return;
+
+            RestoreEntityBotState(botOwner, originalState);
+        }
+
+        private void SetAllEntityAiEnabled(bool enabled)
+        {
+            for (int i = 0; i < _liveEntityEntries.Count; i++)
+            {
+                BotOwner owner = _liveEntityEntries[i].BotOwner;
+                if (owner != null)
+                    SetEntityAiEnabled(owner, enabled);
+            }
+        }
+
+        private bool AreAllEntityAiEnabled()
+        {
+            for (int i = 0; i < _liveEntityEntries.Count; i++)
+            {
+                BotOwner owner = _liveEntityEntries[i].BotOwner;
+                if (owner != null &&
+                    _disabledEntityAi.ContainsKey(owner))
+                    return false;
+            }
+            return true;
+        }
+
+        private void SetEntityFriendly(
+            BotOwner botOwner,
+            bool friendly)
+        {
+            if (botOwner == null || botOwner.IsDead)
+                return;
+
+            if (friendly)
+                _friendlyEntityAi.Add(botOwner);
+            else
+                _friendlyEntityAi.Remove(botOwner);
+
+            ApplyEntityFriendlyState(botOwner, friendly);
+        }
+
+        private void SetAllEntitiesFriendly(bool friendly)
+        {
+            for (int i = 0; i < _liveEntityEntries.Count; i++)
+            {
+                BotOwner owner = _liveEntityEntries[i].BotOwner;
+                if (owner != null)
+                    SetEntityFriendly(owner, friendly);
+            }
+        }
+
+        private bool AreAllEntitiesFriendly()
+        {
+            bool foundAi = false;
+            for (int i = 0; i < _liveEntityEntries.Count; i++)
+            {
+                BotOwner owner = _liveEntityEntries[i].BotOwner;
+                if (owner == null)
+                    continue;
+
+                foundAi = true;
+                if (!_friendlyEntityAi.Contains(owner))
+                    return false;
+            }
+            return foundAi;
+        }
+
+        private void KillEntityBot(Player player)
+        {
+            if (player == null ||
+                player.IsYourPlayer ||
+                player.AIData == null ||
+                !player.AIData.IsAI ||
+                player.HealthController == null ||
+                !player.HealthController.IsAlive)
+                return;
+
+            try
+            {
+                player.KillMe(
+                    EBodyPartColliderType.HeadCommon,
+                    100000f);
+            }
+            catch (Exception exception)
+            {
+                LogSource.LogWarning(
+                    "Could not kill entity: " +
+                    exception.Message);
+            }
+        }
+
+        private void KillAllEntityBots()
+        {
+            Player[] bots = _liveEntityEntries
+                .Where(entry => entry.BotOwner != null)
+                .Select(entry => entry.Player)
+                .ToArray();
+            for (int i = 0; i < bots.Length; i++)
+                KillEntityBot(bots[i]);
+        }
+
+        private void RestoreEntityBotState(
+            BotOwner botOwner,
+            EBotState originalState)
+        {
+            if (botOwner == null ||
+                botOwner.IsDead ||
+                botOwner.BotState != EBotState.NonActive ||
+                originalState == EBotState.NonActive ||
+                originalState == EBotState.Disposed ||
+                SetBotStateMethod == null)
+                return;
+
+            try
+            {
+                SetBotStateMethod.Invoke(
+                    botOwner,
+                    new object[] { originalState });
+            }
+            catch (Exception exception)
+            {
+                LogSource.LogWarning(
+                    "Could not restore entity AI: " +
+                    exception.Message);
+            }
+        }
+
+        private void ReleaseEntityAiOverrides()
+        {
+            foreach (
+                KeyValuePair<BotOwner, EBotState> disabled
+                in _disabledEntityAi)
+            {
+                if (!ReferenceEquals(
+                        disabled.Key,
+                        _livingLootPausedBot))
+                {
+                    RestoreEntityBotState(
+                        disabled.Key,
+                        disabled.Value);
+                }
+            }
+
+            _disabledEntityAi.Clear();
+        }
+
+        private void HandleEntityAiRemoved(Player player)
+        {
+            BotOwner owner =
+                player == null ||
+                player.AIData == null
+                    ? null
+                    : player.AIData.BotOwner;
+            if (owner != null)
+            {
+                _disabledEntityAi.Remove(owner);
+                _friendlyEntityAi.Remove(owner);
+            }
         }
 
         private void RefreshLiveLoot()

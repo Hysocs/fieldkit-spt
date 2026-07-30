@@ -24,6 +24,14 @@ namespace FieldKit
             else
             {
                 ReleaseGameUiInputBlock();
+                if (_menuCursorApplied)
+                {
+                    Cursor.SetCursor(
+                        null,
+                        Vector2.zero,
+                        CursorMode.Auto);
+                    _menuCursorApplied = false;
+                }
                 Cursor.lockState = _previousCursorLock;
                 Cursor.visible = _previousCursorVisible;
             }
@@ -38,6 +46,16 @@ namespace FieldKit
                 Cursor.lockState = CursorLockMode.None;
             if (!Cursor.visible)
                 Cursor.visible = true;
+
+            EnsureMenuCursorTexture();
+            if (_menuCursorTexture != null)
+            {
+                Cursor.SetCursor(
+                    _menuCursorTexture,
+                    Vector2.zero,
+                    CursorMode.ForceSoftware);
+                _menuCursorApplied = true;
+            }
 
             MaintainGameUiInputBlock();
         }

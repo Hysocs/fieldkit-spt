@@ -53,6 +53,10 @@ namespace FieldKit
 
         private void DetachWorld()
         {
+            CancelPendingEntitySpawn();
+            ReleaseAllFieldKitSpawnCapacity();
+            ReleaseFriendlyAi();
+            ReleaseEntityAiOverrides();
             _extractionPoints.Clear();
             _usableExtractionIds.Clear();
             _nextExtractionRefresh = 0f;
@@ -146,9 +150,6 @@ namespace FieldKit
         private void OnPersonAdded(IPlayer person)
         {
             AddTarget(person as Player);
-            if (_allAiFriendly != null &&
-                _allAiFriendly.Value)
-                _friendlyAiRefreshRequested = true;
         }
 
         private void AddTarget(Player player)
@@ -313,6 +314,8 @@ namespace FieldKit
             Player removed = person as Player;
             _corpseChamDiscoveryDirty = true;
             HandleLivingAiRemoved(removed);
+            HandleEntityAiRemoved(removed);
+            HandleFieldKitSpawnRemoved(removed);
 
             for (int i = _targets.Count - 1; i >= 0; i--)
             {

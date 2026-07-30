@@ -22,17 +22,6 @@ namespace FieldKit
         {
             AddRoleEsp("PMC-BEAR", "PMC - BEAR", EspKind.Pmc, "BEAR");
             AddRoleEsp("PMC-USEC", "PMC - USEC", EspKind.Pmc, "USEC");
-            AddRoleEsp(
-                "AI-BOSS",
-                "Boss - Runtime Boss",
-                EspKind.Boss,
-                "Runtime Boss");
-            AddRoleEsp(
-                "AI-FOLLOWER",
-                "Follower - Runtime Follower",
-                EspKind.Boss,
-                "Runtime Follower");
-
             Array roles = Enum.GetValues(typeof(WildSpawnType));
             for (int i = 0; i < roles.Length; i++)
             {
@@ -43,7 +32,8 @@ namespace FieldKit
                     "ROLE-" + roleName,
                     RoleGroupName(role) + " - " + roleName,
                     kind,
-                    roleName);
+                    roleName,
+                    IsFollowerRole(role));
             }
         }
 
@@ -51,7 +41,8 @@ namespace FieldKit
             string key,
             string label,
             EspKind kind,
-            string configKey)
+            string configKey,
+            bool followerSubcategory = false)
         {
             Color visible = GetRoleDefaultColor(key, kind);
             Color hidden = new Color(
@@ -65,6 +56,7 @@ namespace FieldKit
                 Label = label,
                 Group = label.Substring(0, label.IndexOf(" - ",
                     StringComparison.Ordinal)),
+                FollowerSubcategory = followerSubcategory,
                 Kind = kind,
                 DefaultVisible = visible,
                 DefaultHidden = hidden,
@@ -118,6 +110,9 @@ namespace FieldKit
 
         private static EspKind RoleKind(WildSpawnType role)
         {
+            if (role == WildSpawnType.pmcBEAR ||
+                role == WildSpawnType.pmcUSEC)
+                return EspKind.Pmc;
             return IsOrdinaryScavRole(role)
                 ? EspKind.Scav
                 : EspKind.Boss;
@@ -126,12 +121,15 @@ namespace FieldKit
         private static string RoleGroupName(WildSpawnType role)
         {
             string name = role.ToString();
+            if (role == WildSpawnType.pmcBEAR ||
+                role == WildSpawnType.pmcUSEC)
+                return "PMC";
             if (IsOrdinaryScavRole(role))
                 return "Scav";
             if (name.StartsWith("boss", StringComparison.OrdinalIgnoreCase))
                 return "Boss";
-            if (name.StartsWith("follower", StringComparison.OrdinalIgnoreCase))
-                return "Follower";
+            if (IsFollowerRole(role))
+                return "Boss";
             if (name.StartsWith("sect", StringComparison.OrdinalIgnoreCase))
                 return "Cultist";
             if (name.StartsWith("infected", StringComparison.OrdinalIgnoreCase))
@@ -140,6 +138,14 @@ namespace FieldKit
                 role == WildSpawnType.exUsec)
                 return "Raider / Rogue";
             return "Special";
+        }
+
+        private static bool IsFollowerRole(
+            WildSpawnType role)
+        {
+            return role.ToString().StartsWith(
+                "follower",
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private static Color GetRoleDefaultColor(string key, EspKind kind)
@@ -165,19 +171,7 @@ namespace FieldKit
                 {
                     WildSpawnType role =
                         player.Profile.Info.Settings.Role;
-                    string roleName = role.ToString();
-                    BotOwner owner = player.AIData.BotOwner;
-                    if (IsRuntimeBoss(owner) &&
-                        roleName.StartsWith(
-                            "follower",
-                            StringComparison.OrdinalIgnoreCase))
-                        return "AI-BOSS";
-                    if (IsRuntimeFollower(owner) &&
-                        !roleName.StartsWith(
-                            "follower",
-                            StringComparison.OrdinalIgnoreCase))
-                        return "AI-FOLLOWER";
-                    return "ROLE-" + roleName;
+                    return "ROLE-" + role;
                 }
             }
             catch { }
@@ -272,6 +266,7 @@ namespace FieldKit
             public string Label;
             public string Group;
             public EspKind Kind;
+            public bool FollowerSubcategory;
             public ConfigEntry<bool> Enabled;
             public ConfigEntry<string> VisibleColor;
             public ConfigEntry<string> HiddenColor;

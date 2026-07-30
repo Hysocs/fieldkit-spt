@@ -95,6 +95,8 @@ namespace FieldKit
             _livingLootOwner = owner;
             _livingLootTarget = target;
             _livingLootOpening = true;
+            if (_holdLivingAiStill.Value)
+                PauseLivingLootTarget();
             owner.Player.SaveInteractionRayInfo();
             ContinueOpeningLivingAiInventory();
         }
@@ -298,6 +300,7 @@ namespace FieldKit
         private void ClearLivingAiLootSession()
         {
             RestoreLivingAiLootProxy();
+            ResumeLivingLootTarget();
             _livingLootTarget = null;
             _livingLootOwner = null;
 

@@ -21,7 +21,7 @@ public record FieldKitServerMetadata : AbstractModMetadata
     public override string Author { get; init; } = "Hysocs";
     public override List<string>? Contributors { get; init; }
     public override SemanticVersioning.Version Version { get; init; } =
-        new("1.0.0");
+        new("1.1.0");
     public override SemanticVersioning.Range SptVersion { get; init; } =
         new("~4.0.0");
     public override List<string>? Incompatibilities { get; init; }

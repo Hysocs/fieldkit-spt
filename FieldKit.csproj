@@ -9,7 +9,7 @@
     <Nullable>disable</Nullable>
     <Authors>Hysocs</Authors>
     <Copyright></Copyright>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Configurations>Debug;Release;Package</Configurations>
     <Version>$(AssemblyVersion)</Version>
@@ -17,7 +17,16 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
+    <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.ForceRebuild.g.cs</FieldKitForceRebuildFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(FieldKitForceRebuildFile)"
+             AutoGen="true"
+             DesignTime="false"
+             Visible="false" />
+  </ItemGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,6 +101,9 @@
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
@@ -120,11 +132,22 @@
   </PropertyGroup>
 
   <Target Name="DeployFieldKitClient"
-          AfterTargets="CopyFilesToOutputDirectory"
+          AfterTargets="Build"
           Condition="'$(SkipDeploy)' != 'true'">
     <MakeDir Directories="$(FieldKitClientInstallDir)" />
     <Copy SourceFiles="$(TargetPath)"
           DestinationFolder="$(FieldKitClientInstallDir)"
-          SkipUnchangedFiles="true" />
+          SkipUnchangedFiles="false" />
+    <Message Importance="high"
+             Text="FieldKit client deployed: $(FieldKitClientInstallDir)\$(TargetFileName)" />
+  </Target>
+
+  <Target Name="ForceFieldKitClientRebuild"
+          BeforeTargets="CoreCompile"
+          Condition="'$(SkipForceRebuild)' != 'true'">
+    <MakeDir Directories="$(FieldKitForceRebuildDir)" />
+    <Touch Files="$(FieldKitForceRebuildFile)"
+           AlwaysCreate="true"
+           ForceTouch="true" />
   </Target>
 </Project>

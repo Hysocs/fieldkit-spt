@@ -50,6 +50,8 @@ namespace FieldKit
             new Rect(30f, 30f, MenuWidth, MenuHeight);
         private CursorLockMode _previousCursorLock;
         private bool _previousCursorVisible;
+        private Texture2D _menuCursorTexture;
+        private bool _menuCursorApplied;
         private UnityEngine.EventSystems.EventSystem
             _blockedEventSystem;
         private bool _blockedEventSystemWasEnabled;
@@ -71,6 +73,108 @@ namespace FieldKit
             new Rect(805f, 270f, 390f, 250f);
         private readonly List<Texture2D> _themeTextures =
             new List<Texture2D>(16);
+
+        private void EnsureMenuCursorTexture()
+        {
+            if (_menuCursorTexture != null)
+                return;
+
+            // Unity displays software cursors at native texture size. Keep
+            // this at a fixed 2:3 pixel aspect so ultrawide and 4:3 screens
+            // do not stretch or scale it differently.
+            const int width = 14;
+            const int height = 21;
+            bool[,] fill = new bool[width, height];
+            Vector2[] shape =
+            {
+                new Vector2(1f, 1f),
+                new Vector2(1f, 17f),
+                new Vector2(5f, 13f),
+                new Vector2(8f, 20f),
+                new Vector2(11f, 19f),
+                new Vector2(7f, 12f),
+                new Vector2(13f, 12f)
+            };
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    bool inside = false;
+                    for (int current = 0, previous = shape.Length - 1;
+                         current < shape.Length;
+                         previous = current++)
+                    {
+                        Vector2 a = shape[current];
+                        Vector2 b = shape[previous];
+                        if ((a.y > y) != (b.y > y) &&
+                            x < (b.x - a.x) * (y - a.y) /
+                                (b.y - a.y) + a.x)
+                            inside = !inside;
+                    }
+                    fill[x, y] = inside;
+                }
+            }
+
+            Color32[] pixels = new Color32[width * height];
+            Color32 outline = new Color32(8, 10, 14, 255);
+            Color32 fillColor =
+                new Color32(242, 246, 252, 255);
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    bool filled = fill[x, y];
+                    bool bordered = false;
+                    if (!filled)
+                    {
+                        for (int offsetY = -1;
+                             offsetY <= 1 && !bordered;
+                             offsetY++)
+                        {
+                            for (int offsetX = -1;
+                                 offsetX <= 1;
+                                 offsetX++)
+                            {
+                                int sampleX = x + offsetX;
+                                int sampleY = y + offsetY;
+                                if (sampleX >= 0 &&
+                                    sampleX < width &&
+                                    sampleY >= 0 &&
+                                    sampleY < height &&
+                                    fill[sampleX, sampleY])
+                                {
+                                    bordered = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    pixels[
+                        (height - 1 - y) * width + x] =
+                        filled
+                            ? fillColor
+                            : bordered
+                                ? outline
+                                : new Color32(0, 0, 0, 0);
+                }
+            }
+
+            _menuCursorTexture = new Texture2D(
+                width,
+                height,
+                TextureFormat.RGBA32,
+                false)
+            {
+                name = "FieldKit Menu Cursor",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+            _menuCursorTexture.SetPixels32(pixels);
+            _menuCursorTexture.Apply(false, false);
+            _themeTextures.Add(_menuCursorTexture);
+        }
 
         private void ConfigureGuiSettings()
         {

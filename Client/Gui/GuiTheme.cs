@@ -510,6 +510,15 @@ namespace FieldKit
 
         private void DisposeGuiTheme()
         {
+            if (_menuCursorApplied)
+            {
+                Cursor.SetCursor(
+                    null,
+                    Vector2.zero,
+                    CursorMode.Auto);
+                _menuCursorApplied = false;
+            }
+
             if (_adminSkin != null)
                 Destroy(_adminSkin);
 
@@ -522,6 +531,7 @@ namespace FieldKit
             _dropdownMenuStyle = null;
             _dropdownItemStyle = null;
             _optionTooltipStyle = null;
+            _menuCursorTexture = null;
 
             for (int i = 0; i < _themeTextures.Count; i++)
             {

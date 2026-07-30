@@ -209,7 +209,10 @@ namespace FieldKit
         private void DrawRoleColorRow(EspRoleSettings role)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Space(42f);
+            GUILayout.Space(
+                role.FollowerSubcategory
+                    ? 68f
+                    : 42f);
             DrawOptionToggleLabel(
                 role.Enabled,
                 " " + RoleLeafName(role),
@@ -332,10 +335,13 @@ namespace FieldKit
         private static string RoleLeafName(EspRoleSettings role)
         {
             string prefix = role.Group + " - ";
-            return role.Label.StartsWith(
+            string leaf = role.Label.StartsWith(
                     prefix, System.StringComparison.Ordinal)
                 ? role.Label.Substring(prefix.Length)
                 : role.Label;
+            return role.FollowerSubcategory
+                ? "Follower / " + leaf
+                : leaf;
         }
 
         private static void DrawColorColumnHeaders()
@@ -388,7 +394,10 @@ namespace FieldKit
         private void DrawChamRoleColorRow(EspRoleSettings role)
         {
             GUILayout.BeginHorizontal();
-            GUILayout.Space(42f);
+            GUILayout.Space(
+                role.FollowerSubcategory
+                    ? 68f
+                    : 42f);
             DrawOptionToggleLabel(
                 role.ChamsEnabled,
                 " " + RoleLeafName(role),

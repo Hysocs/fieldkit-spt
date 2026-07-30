@@ -41,7 +41,7 @@ configuration, or run:
 dotnet build FieldKit.sln -c Release -p:SkipDeploy=true
 ```
 
-The Release solution build creates `dist/FieldKit-1.0.0.zip` with both DLLs in
+The Release solution build creates `dist/FieldKit-1.1.0.zip` with both DLLs in
 the ready-to-install SPT directory structure. `SkipDeploy=true` prevents the
 build from copying files into the active SPT installation; use
 `SkipPackage=true` if a ZIP is not wanted.

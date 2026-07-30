@@ -1383,16 +1383,7 @@ namespace FieldKit
                 try
                 {
                     WildSpawnType role = player.Profile.Info.Settings.Role;
-                    BotOwner owner =
-                        player.AIData == null
-                            ? null
-                            : player.AIData.BotOwner;
-                    bool normalScav =
-                        IsOrdinaryScavRole(role) &&
-                        !IsRuntimeBoss(owner) &&
-                        !IsRuntimeFollower(owner);
-
-                    kind = normalScav ? EspKind.Scav : EspKind.Boss;
+                    kind = RoleKind(role);
                     color = GetVisualColor(kind);
 
                     return true;
