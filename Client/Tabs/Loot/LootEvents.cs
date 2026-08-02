@@ -167,19 +167,19 @@ namespace FieldKit
             _lootContainerOwners.Clear();
         }
 
-        private void OnContainerItemAdded(GEventArgs2 args)
+        private void OnContainerItemAdded(AddItemEventArgs args)
         {
             _containerCacheDirty = true;
             _perfContainerInvalidations++;
         }
 
-        private void OnContainerItemRemoved(GEventArgs3 args)
+        private void OnContainerItemRemoved(RemoveItemEventArgs args)
         {
             _containerCacheDirty = true;
             _perfContainerInvalidations++;
         }
 
-        private void OnContainerItemRefreshed(GEventArgs18 args)
+        private void OnContainerItemRefreshed(RefreshItemEventArgs args)
         {
             _containerCacheDirty = true;
             _perfContainerInvalidations++;

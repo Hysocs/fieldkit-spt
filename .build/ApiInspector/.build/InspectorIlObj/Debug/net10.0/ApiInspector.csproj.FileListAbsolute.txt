@@ -1,0 +1,15 @@
+C:\SPT\Development\fieldkit\.build\ApiInspector\bin\InspectorIl\ApiInspector.exe
+C:\SPT\Development\fieldkit\.build\ApiInspector\bin\InspectorIl\ApiInspector.deps.json
+C:\SPT\Development\fieldkit\.build\ApiInspector\bin\InspectorIl\ApiInspector.runtimeconfig.json
+C:\SPT\Development\fieldkit\.build\ApiInspector\bin\InspectorIl\ApiInspector.dll
+C:\SPT\Development\fieldkit\.build\ApiInspector\bin\InspectorIl\ApiInspector.pdb
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.GeneratedMSBuildEditorConfig.editorconfig
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.AssemblyInfoInputs.cache
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.AssemblyInfo.cs
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.csproj.CoreCompileInputs.cache
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.sourcelink.json
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.dll
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\refint\ApiInspector.dll
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.pdb
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ApiInspector.genruntimeconfig.cache
+C:\SPT\Development\fieldkit\.build\ApiInspector\.build\InspectorIlObj\Debug\net10.0\ref\ApiInspector.dll

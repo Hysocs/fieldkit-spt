@@ -28,7 +28,7 @@ namespace FieldKit
             DrawAllRoleRow();
             for (int i = 0; i < _espRoleGroups.Count; i++)
                 DrawRoleGroup(_espRoleGroups[i]);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
             DrawOptionToggle(_showBoxes, " Show Boxes");
             DrawOptionToggle(_showBones, " Show Bone ESP");
             DrawOptionToggle(_showAimLines, " Show Aim Lines");
@@ -114,7 +114,7 @@ namespace FieldKit
             DrawAllChamRoleRow();
             for (int i = 0; i < _espRoleGroups.Count; i++)
                 DrawChamRoleGroup(_espRoleGroups[i]);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
             GUILayout.Space(5f);
             GUILayout.Label("World (RGBA)", _sectionTitleStyle);
             DrawWorldChamRow(
@@ -171,7 +171,7 @@ namespace FieldKit
             EndCategoryPanel();
             EndCategoryColumns();
 
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
         private void DrawExtractionEspRow()

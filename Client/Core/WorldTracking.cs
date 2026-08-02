@@ -408,8 +408,7 @@ namespace FieldKit
                     target,
                     ReferenceEquals(target, visibilityFocus),
                     now,
-                    usedByChams &&
-                    _chamsPerLimbVisibility.Value);
+                    false);
                 target.DisplayColor = GetDisplayColor(target);
 
                 if (usedByEsp && target.HealthDirty)

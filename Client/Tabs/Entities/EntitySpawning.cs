@@ -2,6 +2,52 @@ namespace FieldKit
 {
     public sealed partial class Plugin
     {
+        private static readonly FieldInfo BotSpawnerGameEndField =
+            AccessTools.Field(typeof(BotSpawner), "_gameEnd");
+        private static readonly FieldInfo BotSpawnerInSpawnProcessField =
+            AccessTools.Field(typeof(BotSpawner), "_inSpawnProcess");
+        private static readonly FieldInfo BotSpawnerZonesField =
+            AccessTools.Field(typeof(BotSpawner), "_allBotZones");
+        private static readonly FieldInfo BotSpawnerSpawnSystemField =
+            AccessTools.Field(typeof(BotSpawner), "_spawnSystem");
+        private static readonly FieldInfo BotSpawnerAllBotsCountField =
+            AccessTools.Field(typeof(BotSpawner), "_allBotsCount");
+        private static readonly FieldInfo BotSpawnerBotCreatorField =
+            AccessTools.Field(typeof(BotSpawner), "_botCreator");
+
+        private static bool GetBotSpawnerGameEnd(BotSpawner spawner) =>
+            spawner != null &&
+            BotSpawnerGameEndField != null &&
+            (bool)BotSpawnerGameEndField.GetValue(spawner);
+
+        private static int GetBotSpawnerInSpawnProcess(BotSpawner spawner) =>
+            spawner == null || BotSpawnerInSpawnProcessField == null
+                ? 0
+                : (int)BotSpawnerInSpawnProcessField.GetValue(spawner);
+
+        private static void SetBotSpawnerInSpawnProcess(
+            BotSpawner spawner, int value)
+        {
+            BotSpawnerInSpawnProcessField?.SetValue(spawner, value);
+        }
+
+        private static BotZone[] GetBotSpawnerZones(BotSpawner spawner) =>
+            BotSpawnerZonesField?.GetValue(spawner) as BotZone[];
+
+        private static EFT.Game.Spawning.ISpawnSystem
+            GetBotSpawnerSpawnSystem(BotSpawner spawner) =>
+                BotSpawnerSpawnSystemField?.GetValue(spawner)
+                    as EFT.Game.Spawning.ISpawnSystem;
+
+        private static int GetBotSpawnerAllBotsCount(BotSpawner spawner) =>
+            spawner == null || BotSpawnerAllBotsCountField == null
+                ? 0
+                : (int)BotSpawnerAllBotsCountField.GetValue(spawner);
+
+        private static IBotCreator GetBotSpawnerBotCreator(
+            BotSpawner spawner) =>
+                BotSpawnerBotCreatorField?.GetValue(spawner) as IBotCreator;
+
         private BotSpawner GetEntityBotSpawner(
             out BotsController controller)
         {
@@ -43,7 +89,7 @@ namespace FieldKit
 
             string botTypesPath = System.IO.Path.Combine(
                 BepInEx.Paths.GameRootPath,
-                "SPT",
+                "SPT_Runtime",
                 "SPT_Data",
                 "database",
                 "bots",
@@ -223,7 +269,7 @@ namespace FieldKit
                 GetEntityBotSpawner(out controller);
             if (spawner == null ||
                 controller == null ||
-                spawner.GameEnd ||
+                GetBotSpawnerGameEnd(spawner) ||
                 !spawner.IsProfilesLoaded)
             {
                 _spawnEntityStatus =
@@ -309,8 +355,8 @@ namespace FieldKit
                     profile.Info.Settings.Role;
                 BotDifficulty generatedDifficulty =
                     profile.Info.Settings.BotDifficulty;
-                BotProfileDataClass profileData =
-                    new BotProfileDataClass(
+                GetProfileDataParams profileData =
+                    new GetProfileDataParams(
                         generatedSide,
                         generatedRole,
                         generatedDifficulty,
@@ -406,13 +452,12 @@ namespace FieldKit
                     spawnPosition,
                     spawnPoint.CorePointId);
 
-                // This mirrors BotSpawner.DebugSpawnAnyway: one reservation
-                // enters method_10 and method_11 releases it after complete
-                // BotOwner registration. MaxBots receives one temporary slot
-                // so scheduled raid waves keep their original capacity.
+                // Keep the temporary slot separate from scheduled raid capacity.
                 ReserveFieldKitSpawnCapacity(spawner);
                 capacityReserved = true;
-                spawner.InSpawnProcess++;
+                SetBotSpawnerInSpawnProcess(
+                    spawner,
+                    GetBotSpawnerInSpawnProcess(spawner) + 1);
                 try
                 {
                     spawner.method_10(
@@ -423,8 +468,10 @@ namespace FieldKit
                 }
                 catch
                 {
-                    spawner.InSpawnProcess =
-                        Math.Max(0, spawner.InSpawnProcess - 1);
+                    SetBotSpawnerInSpawnProcess(
+                        spawner,
+                        Math.Max(0,
+                            GetBotSpawnerInSpawnProcess(spawner) - 1));
                     throw;
                 }
 
@@ -504,26 +551,8 @@ namespace FieldKit
                 BindingFlags.Public |
                 BindingFlags.NonPublic;
 
-            MethodInfo getPoolsMethod =
-                typeof(PoolManagerClass).GetMethod(
-                    "method_0",
-                    InstanceMethods,
-                    null,
-                    new[]
-                    {
-                        typeof(PoolManagerClass.PoolsCategory)
-                    },
-                    null);
-            if (getPoolsMethod == null)
-                throw new MissingMethodException(
-                    "EFT pool-category accessor was not found.");
-
-            object pools = getPoolsMethod.Invoke(
-                poolManager,
-                new object[]
-                {
-                    PoolManagerClass.PoolsCategory.Raid
-                });
+            object pools = poolManager.GetPools(
+                PoolManagerClass.PoolsCategory.Raid);
             if (pools == null)
                 throw new InvalidOperationException(
                     "EFT's raid resource pool is unavailable.");
@@ -531,7 +560,13 @@ namespace FieldKit
             MethodInfo convertMethod =
                 pools.GetType().GetMethod(
                     "ConvertResourceInfo",
-                    InstanceMethods);
+                    InstanceMethods,
+                    null,
+                    new[]
+                    {
+                        typeof(ICollection<EFT.ResourceKey>)
+                    },
+                    null);
             if (convertMethod == null)
                 throw new MissingMethodException(
                     "EFT resource conversion method was not found.");
@@ -548,9 +583,6 @@ namespace FieldKit
                 throw new InvalidOperationException(
                     "EFT did not produce resource-pool data.");
 
-            // EFT normally expands each resource to a type-wide configured
-            // target. Runtime entity creation needs one instance, not enough
-            // free equipment for another whole wave.
             for (int i = 0; i < resourceInfo.Count; i++)
             {
                 object info = resourceInfo[i];
@@ -574,7 +606,7 @@ namespace FieldKit
                     .GetMethods(InstanceMethods)
                     .FirstOrDefault(method =>
                     {
-                        if (method.Name != "method_1" ||
+                        if (method.Name != "LoadBundlesAndCreatePools" ||
                             method.ReturnType != typeof(Task))
                             return false;
 
@@ -615,7 +647,7 @@ namespace FieldKit
                         pools,
                         converted,
                         PoolManagerClass.AssemblyType.Online,
-                        JobPriorityClass.Immediate,
+                        Diz.Jobs.JobYieldPriority.Immediate,
                         null,
                         cancellationToken
                     });
@@ -686,12 +718,10 @@ namespace FieldKit
                     "SPT bot generation failed.");
 
             JToken data = root["data"] ?? root;
-            CompleteProfileDescriptorClass[] descriptors =
-                JsonParserClass.ParseJsonTo<
-                    CompleteProfileDescriptorClass[]>(
-                    data.ToString(Formatting.None),
-                    Array.Empty<JsonConverter>());
-            CompleteProfileDescriptorClass descriptor =
+            ProfileDescriptor[] descriptors =
+                JsonConvert.DeserializeObject<ProfileDescriptor[]>(
+                    data.ToString(Formatting.None));
+            ProfileDescriptor descriptor =
                 descriptors == null
                     ? null
                     : descriptors.FirstOrDefault(
@@ -725,16 +755,19 @@ namespace FieldKit
             if (spawner == null ||
                 controller == null ||
                 creationData == null ||
-                spawner.AllBotZones == null ||
-                spawner.SpawnSystem == null)
+                GetBotSpawnerZones(spawner) == null ||
+                GetBotSpawnerSpawnSystem(spawner) == null)
                 return false;
 
+            BotZone[] allBotZones = GetBotSpawnerZones(spawner);
+            EFT.Game.Spawning.ISpawnSystem spawnSystem =
+                GetBotSpawnerSpawnSystem(spawner);
             float bestScore = float.MaxValue;
             for (int zoneIndex = 0;
-                 zoneIndex < spawner.AllBotZones.Length;
+                 zoneIndex < allBotZones.Length;
                  zoneIndex++)
             {
-                BotZone zone = spawner.AllBotZones[zoneIndex];
+                BotZone zone = allBotZones[zoneIndex];
                 if (zone == null ||
                     zone.SpawnPoints == null)
                     continue;
@@ -758,16 +791,13 @@ namespace FieldKit
                         continue;
 
                     bool currentlyValid =
-                        spawner.SpawnSystem.IsValidSpawn(
+                        spawnSystem.IsValidSpawn(
                             point,
                             creationData,
                             Time.time);
                     float distance = (
                         point.Position -
                         requestedPosition).sqrMagnitude;
-                    // Prefer a currently valid marker, but the forced spawn branch
-                    // may still use a temporarily blocked marker in this compatible
-                    // zone to avoid EFT's delayed queue.
                     float score = distance +
                         (currentlyValid ? 0f : 10000000f);
                     if (score >= bestScore)
@@ -811,9 +841,6 @@ namespace FieldKit
                 bool aiDisabled,
                 bool ignoreNavMesh)
         {
-            // EFT's direct completion callback runs at the end of its bot
-            // registration pass. Waiting one frame also lets movement,
-            // animation, and GameWorld listeners observe the new player.
             yield return null;
 
             try
@@ -835,10 +862,7 @@ namespace FieldKit
                 }
                 else
                 {
-                    // The activation position was already resolved against a
-                    // nearby NavMesh polygon. A direct teleport preserves that
-                    // local result; DevelopmentTeleportBot may search globally
-                    // and relocate the bot to a distant map polygon.
+                    // DevelopmentTeleportBot may relocate this validated position globally.
                     botOwner.GetPlayer.Teleport(
                         requestedPosition,
                         false);
@@ -978,9 +1002,9 @@ namespace FieldKit
             }
             LogSource.LogInfo(
                 "Registered FieldKit bot " + profileId +
-                ": alive=" + spawner.AllBotsCount +
-                ", loading=" + spawner.BotCreator.BotsLoading +
-                ", spawning=" + spawner.InSpawnProcess +
+                ": alive=" + GetBotSpawnerAllBotsCount(spawner) +
+                ", loading=" + GetBotSpawnerBotCreator(spawner).BotsLoading +
+                ", spawning=" + GetBotSpawnerInSpawnProcess(spawner) +
                 ", max=" + spawner.MaxBots + ".");
         }
 
@@ -1032,7 +1056,7 @@ namespace FieldKit
                 return;
 
             _fieldKitCapacityHeadroom--;
-            if (spawner != null && !spawner.GameEnd)
+            if (spawner != null && !GetBotSpawnerGameEnd(spawner))
                 spawner.SetMaxBots(
                     Math.Max(0, spawner.MaxBots - 1));
             if (_fieldKitCapacityHeadroom == 0)
@@ -1051,7 +1075,7 @@ namespace FieldKit
             _fieldKitCapacitySpawner = null;
 
             if (spawner != null &&
-                !spawner.GameEnd &&
+                !GetBotSpawnerGameEnd(spawner) &&
                 headroom > 0)
             {
                 spawner.SetMaxBots(

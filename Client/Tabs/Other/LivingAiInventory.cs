@@ -22,12 +22,12 @@ namespace FieldKit
                 return;
 
             string targetName = plugin.GetLivingAiName(target);
-            ActionsReturnClass interactionState =
-                new ActionsReturnClass
+            AvailableInteractionState interactionState =
+                new AvailableInteractionState
                 {
-                    Actions = new List<ActionsTypesClass>
+                    Actions = new List<InteractionAction>
                     {
-                        new ActionsTypesClass
+                        new InteractionAction
                         {
                             Name = "Search",
                             TargetName = targetName,
@@ -153,9 +153,9 @@ namespace FieldKit
         }
 
         private static void ProtectLivingAiHandsItem(
-            Player.PlayerInventoryController __instance,
+            ItemController __instance,
             Item __0,
-            ref GStruct155 __result)
+            ref Diz.LanguageExtensions.Option __result)
         {
             Plugin plugin = _instance;
             if (plugin == null ||
@@ -179,8 +179,8 @@ namespace FieldKit
                 if (handsItem != null &&
                     ReferenceEquals(__0, handsItem))
                 {
-                    __result = new GStruct155(
-                        new GClass1522(
+                    __result = new Diz.LanguageExtensions.Option(
+                        new Diz.LanguageExtensions.StringError(
                             "The AI's active hands item is visual-only and cannot be moved while held."));
                 }
             }
@@ -234,7 +234,7 @@ namespace FieldKit
         }
 
         private void ForwardLivingAiItemAdded(
-            GEventArgs2 eventArgs)
+            AddItemEventArgs eventArgs)
         {
             try
             {
@@ -251,7 +251,7 @@ namespace FieldKit
         }
 
         private void ForwardLivingAiItemRemoved(
-            GEventArgs3 eventArgs)
+            RemoveItemEventArgs eventArgs)
         {
             try
             {

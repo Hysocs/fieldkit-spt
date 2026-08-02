@@ -67,7 +67,7 @@ namespace FieldKit
             _extractionPoints.Clear();
             _usableExtractionIds.Clear();
 
-            ExfiltrationControllerClass controller =
+            CommonAssets.Scripts.Game.ExfiltrationController controller =
                 _world.ExfiltrationController;
             if (controller == null)
                 return;

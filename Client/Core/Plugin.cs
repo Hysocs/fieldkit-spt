@@ -4,7 +4,7 @@ namespace FieldKit
     [BepInPlugin(
         "com.hysocs.fieldkit",
         "Hysocs-FieldKit",
-        "1.1.0")]
+        "1.2.0")]
     public sealed partial class Plugin : BaseUnityPlugin
     {
         internal static ManualLogSource LogSource;
@@ -91,10 +91,10 @@ namespace FieldKit
             new HashSet<int>();
         private static readonly int VisibilityMask =
             Physics.DefaultRaycastLayers &
-            ~(int)LayerMaskClass.Grass &
-            ~(int)LayerMaskClass.Foliage;
-        private readonly List<BodyRendererDataStruct> _bodyRenderers =
-            new List<BodyRendererDataStruct>(16);
+            ~(1 << LayerMask.NameToLayer("Grass")) &
+            ~(1 << LayerMask.NameToLayer("Foliage"));
+        private readonly List<Renderer> _bodyRenderers =
+            new List<Renderer>(64);
         private static readonly EBodyPart[] HealthParts =
         {
             EBodyPart.Head,

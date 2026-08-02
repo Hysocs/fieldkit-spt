@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <AssemblyName>FieldKit.Server</AssemblyName>
     <RootNamespace>FieldKit.Server</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <OutputPath>bin\$(Configuration)\FieldKit.Server\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <!-- The ZIP is a build output that Visual Studio's fast check cannot
@@ -14,6 +14,7 @@
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.Server.ForceRebuild.g.cs</FieldKitForceRebuildFile>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,25 +25,33 @@
     <ProjectReference Include="..\FieldKit.csproj"
                       ReferenceOutputAssembly="false" />
     <Reference Include="SemanticVersioning">
-      <HintPath>..\..\..\SPT\SemanticVersioning.dll</HintPath>
+      <HintPath>..\..\..\SPT_Runtime\SemanticVersioning.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Common">
-      <HintPath>..\..\..\SPT\SPTarkov.Common.dll</HintPath>
+      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.DI">
-      <HintPath>..\..\..\SPT\SPTarkov.DI.dll</HintPath>
+      <HintPath>..\..\..\SPT_Runtime\SPTarkov.DI.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Server.Core">
-      <HintPath>..\..\..\SPT\SPTarkov.Server.Core.dll</HintPath>
+      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Assets">
+      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Assets.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Web">
+      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Web.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
 
   <PropertyGroup>
-    <FieldKitServerInstallDir>$(MSBuildProjectDirectory)\..\..\..\SPT\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
+    <FieldKitServerInstallDir>$(MSBuildProjectDirectory)\..\..\..\SPT_Runtime\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
     <FieldKitClientDll>$(MSBuildProjectDirectory)\..\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
     <FieldKitLicense>$(MSBuildProjectDirectory)\..\LICENSE</FieldKitLicense>
     <FieldKitPackageRoot>$(MSBuildProjectDirectory)\..\dist\FieldKit-$(Version)</FieldKitPackageRoot>
@@ -76,16 +85,16 @@
     <Delete Files="$(FieldKitPackageZip)" />
 
     <MakeDir Directories="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
-    <MakeDir Directories="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
+    <MakeDir Directories="$(FieldKitPackageRoot)\SPT_Runtime\user\mods\HysocsFieldKit" />
 
     <Copy SourceFiles="$(FieldKitClientDll)"
           DestinationFolder="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
     <Copy SourceFiles="$(TargetPath)"
-          DestinationFolder="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
+          DestinationFolder="$(FieldKitPackageRoot)\SPT_Runtime\user\mods\HysocsFieldKit" />
     <Copy SourceFiles="$(FieldKitLicense)"
           DestinationFolder="$(FieldKitPackageRoot)\BepInEx\plugins\Hysocs-FieldKit" />
     <Copy SourceFiles="$(FieldKitLicense)"
-          DestinationFolder="$(FieldKitPackageRoot)\SPT\user\mods\HysocsFieldKit" />
+          DestinationFolder="$(FieldKitPackageRoot)\SPT_Runtime\user\mods\HysocsFieldKit" />
 
     <ZipDirectory SourceDirectory="$(FieldKitPackageRoot)"
                   DestinationFile="$(FieldKitPackageZip)"

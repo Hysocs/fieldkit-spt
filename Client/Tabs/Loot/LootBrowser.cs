@@ -18,7 +18,7 @@ namespace FieldKit
                         Mathf.Max(300f, MenuHeight - 150f)));
                 DrawLootEspControls();
                 GUILayout.Space(12f);
-                GUILayout.EndScrollView();
+                EndVerticalScrollView();
                 return;
             }
 
@@ -98,7 +98,7 @@ namespace FieldKit
             for (int i = 0; i < _lootRoots.Count; i++)
                 DrawLootRootButton(i);
             GUILayout.Space(12f);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
             GUILayout.EndVertical();
 
             GUILayout.BeginVertical(
@@ -133,7 +133,7 @@ namespace FieldKit
                     _lootRoots[_selectedLootRoot], 0, true);
             }
             GUILayout.Space(18f);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
         }
@@ -643,14 +643,16 @@ namespace FieldKit
                 0f,
                 Mathf.Max(
                     0f,
-                    Screen.width - _lootQuantityPopupRect.width));
+                    VirtualScreenWidth -
+                    _lootQuantityPopupRect.width));
             _lootQuantityPopupRect.y = Mathf.Clamp(
                 _menuRect.center.y -
                 _lootQuantityPopupRect.height * 0.5f,
                 0f,
                 Mathf.Max(
                     0f,
-                    Screen.height - _lootQuantityPopupRect.height));
+                    VirtualScreenHeight -
+                    _lootQuantityPopupRect.height));
         }
 
         private void DrawLootQuantityPopup()

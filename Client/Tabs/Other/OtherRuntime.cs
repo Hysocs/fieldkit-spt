@@ -96,9 +96,7 @@ namespace FieldKit
                 animator.speed = 0f;
             }
 
-            // Disable only changes BotState to NonActive. It does not tear
-            // down the bot, so restoring the saved state resumes the exact
-            // same brain and decision rather than reinitializing the AI.
+            // Restore the preserved brain state instead of reinitializing AI.
             botOwner.Disable();
         }
 

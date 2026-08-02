@@ -133,7 +133,7 @@ namespace FieldKit
             }
 
             GUILayout.Space(18f);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
         private void DrawSpawnEntityView()
@@ -190,7 +190,7 @@ namespace FieldKit
                 DrawSpawnableAiRows();
 
             GUILayout.Space(18f);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
         private void DrawSpawnableAiRows()

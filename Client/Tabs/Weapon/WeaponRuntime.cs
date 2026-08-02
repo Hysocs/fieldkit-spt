@@ -238,10 +238,10 @@ namespace FieldKit
             }
 
             float currentReload =
-                WeaponAnimationSpeedControllerClass.GetFloatSpeedReload(
+                AnimationControllerParametersTable.GetFloatSpeedReload(
                     animator.Animator);
             float currentFix =
-                WeaponAnimationSpeedControllerClass.GetFloatSpeedFix(
+                AnimationControllerParametersTable.GetFloatSpeedFix(
                     animator.Animator);
 
             if (!ReferenceEquals(animator, _actionSpeedAnimator))
@@ -266,10 +266,10 @@ namespace FieldKit
             _appliedReloadSpeed = _baseReloadSpeed * factor;
             _appliedFixSpeed = _baseFixSpeed * factor;
 
-            WeaponAnimationSpeedControllerClass.SetSpeedReload(
+            AnimationControllerParametersTable.SetSpeedReload(
                 animator.Animator,
                 _appliedReloadSpeed);
-            WeaponAnimationSpeedControllerClass.SetSpeedFix(
+            AnimationControllerParametersTable.SetSpeedFix(
                 animator.Animator,
                 _appliedFixSpeed);
         }
@@ -281,10 +281,10 @@ namespace FieldKit
             {
                 try
                 {
-                    WeaponAnimationSpeedControllerClass.SetSpeedReload(
+                    AnimationControllerParametersTable.SetSpeedReload(
                         _actionSpeedAnimator.Animator,
                         _baseReloadSpeed);
-                    WeaponAnimationSpeedControllerClass.SetSpeedFix(
+                    AnimationControllerParametersTable.SetSpeedFix(
                         _actionSpeedAnimator.Animator,
                         _baseFixSpeed);
                 }
@@ -366,7 +366,7 @@ namespace FieldKit
 
         private static void ClearWeaponOverheat(Weapon weapon)
         {
-            Weapon.WeaponMalfunctionStateClass state =
+            Weapon.MalfunctionState state =
                 weapon == null ? null : weapon.MalfState;
 
             if (state == null)

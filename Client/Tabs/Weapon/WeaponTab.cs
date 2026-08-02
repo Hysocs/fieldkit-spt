@@ -51,23 +51,25 @@ namespace FieldKit
         private static readonly Type GenericFireOperationType =
             AccessTools.Inner(
                 typeof(Player.FirearmController),
-                "GenericFireOperationClass");
+                "FireOperation");
         private static readonly FieldInfo GenericQueuedShotField =
             GenericFireOperationType == null
                 ? null
                 : AccessTools.Field(
                     GenericFireOperationType,
-                    "Bool_3");
+                    "_secondShotPlanned");
         private static readonly Type AutomaticFireOperationType =
             AccessTools.Inner(
                 typeof(Player.FirearmController),
-                "GClass2029");
+                "AutomaticFireOperation");
         private static readonly FieldInfo AutomaticShotIntervalField =
             AutomaticFireOperationType == null
                 ? null
                 : AccessTools.Field(
                     AutomaticFireOperationType,
-                    "Float_5");
+                    "_shotsTime");
+        private static readonly FieldInfo ShotEffectorFirearmControllerField =
+            AccessTools.Field(typeof(ShotEffector), "_firearmController");
 
         private void ConfigureWeaponTools()
         {

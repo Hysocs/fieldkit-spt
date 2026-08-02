@@ -58,6 +58,9 @@ namespace FieldKit
         private float _lastCharacterRecoveryTime;
         private float _nextCharacterRecoveryTime;
         private SkillManager _searchSkillManager;
+        private ActiveHealthController _fallDamageHealthController;
+        private float _savedFallSafeHeight;
+        private bool _hasSavedFallSafeHeight;
         private bool _savedContainerScope;
         private bool _hasSavedContainerScope;
         private struct MovementMotionState
@@ -80,51 +83,51 @@ namespace FieldKit
             public bool IsTrigger;
         }
         private static readonly Type RunMovementStateType =
-            AccessTools.TypeByName("RunStateClass");
+            typeof(MovePlayerState);
         private static readonly FieldInfo RunPreviousDirectionField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "Vector2_7");
+                    nameof(MovePlayerState.LastNonZeroDirectionInput));
         private static readonly FieldInfo RunDirectionDelayField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "Float_17");
+                    nameof(MovePlayerState.smoothMovementDirectionTime));
         private static readonly FieldInfo RunBlendedDirectionField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "Vector2_0");
+                    nameof(MovePlayerState.InertiaDirection));
         private static readonly FieldInfo RunDirectionBlendVelocityField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "Vector2_5");
+                    "_velocity");
         private static readonly FieldInfo RunDiscreteDirectionDelayField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "Float_14");
+                    nameof(MovePlayerState.smoothMovementDirectionDuration));
         private static readonly FieldInfo RunStateDirectionField =
             RunMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     RunMovementStateType,
-                    "<Direction>k__BackingField");
+                    nameof(MovePlayerState.LastDirectionInput));
         private static readonly Type JumpMovementStateType =
-            AccessTools.TypeByName("JumpStateClass");
+            typeof(JumpPlayerState);
         private static readonly FieldInfo JumpLiftVelocityField =
             JumpMovementStateType == null
                 ? null
                 : AccessTools.Field(
                     JumpMovementStateType,
-                    "Vector3_1");
+                    "_liftForce");
         private static readonly FieldInfo JumpMovementContextField =
             JumpMovementStateType == null
                 ? null

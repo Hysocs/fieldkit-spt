@@ -9,16 +9,22 @@
     <Nullable>disable</Nullable>
     <Authors>Hysocs</Authors>
     <Copyright></Copyright>
-    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Configurations>Debug;Release;Package</Configurations>
     <Version>$(AssemblyVersion)</Version>
     <LangVersion>latest</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.ForceRebuild.g.cs</FieldKitForceRebuildFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(FieldKitWeaponOnly)' == 'true'">
+    <DefineConstants>$(DefineConstants);FIELDKIT_WEAPON_ONLY</DefineConstants>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -127,6 +133,14 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(FieldKitWeaponOnly)' == 'true'">
+    <Compile Remove="Client\**\*.cs" />
+    <Compile Include="Client\GlobalUsings.cs" />
+    <Compile Include="Client\Tabs\Weapon\**\*.cs" />
+    <Compile Remove="Client\Tabs\Weapon\WeaponUi.cs" />
+    <Compile Include="Client\WeaponOnlyStubs.cs" />
+  </ItemGroup>
+
   <PropertyGroup>
     <FieldKitClientInstallDir>$(MSBuildProjectDirectory)\..\..\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
   </PropertyGroup>
@@ -150,4 +164,8 @@
            AlwaysCreate="true"
            ForceTouch="true" />
   </Target>
+
+  <PropertyGroup Condition="'$(FieldKitWeaponOnly)' == 'true'">
+    <DefineConstants>$(DefineConstants);FIELDKIT_WEAPON_ONLY</DefineConstants>
+  </PropertyGroup>
 </Project>

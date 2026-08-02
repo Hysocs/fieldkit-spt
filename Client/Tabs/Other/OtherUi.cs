@@ -11,6 +11,40 @@ namespace FieldKit
             BeginCategoryColumns();
             BeginCategoryPanel("Menu Options");
 
+            int menuFontIndex = FindEspFontIndex(
+                _menuFontName.Value);
+            int nextMenuFontIndex = DrawDropdown(
+                "menu-font",
+                menuFontIndex,
+                EspFontNames,
+                "Font used by the FieldKit menu.");
+            if (nextMenuFontIndex != menuFontIndex)
+                _menuFontName.Value =
+                    EspFontNames[nextMenuFontIndex];
+
+            float maximumUiScale = MaximumMenuScale;
+            _pendingMenuUiScale = Mathf.Clamp(
+                _pendingMenuUiScale,
+                0.5f,
+                maximumUiScale);
+            GUILayout.Label(
+                "UI scale: " +
+                _pendingMenuUiScale.ToString("0.0") +
+                "x (screen max " +
+                maximumUiScale.ToString("0.00") + "x)");
+            _pendingMenuUiScale = GUILayout.HorizontalSlider(
+                _pendingMenuUiScale,
+                0.5f,
+                maximumUiScale);
+            GUILayout.BeginHorizontal();
+            GUI.enabled = !Mathf.Approximately(
+                _menuUiScale.Value,
+                _pendingMenuUiScale);
+            if (GUILayout.Button("Apply UI scale"))
+                _menuUiScale.Value = _pendingMenuUiScale;
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+
             GUILayout.BeginHorizontal();
             GUILayout.Label(
                 "Primary color",
@@ -35,6 +69,9 @@ namespace FieldKit
             if (DrawResetGroupButton())
             {
                 _guiPrimaryColor.Value = "#78CFF5FF";
+                _menuFontName.Value = "Segoe UI";
+                _menuUiScale.Value = 1f;
+                _pendingMenuUiScale = 1f;
                 _menuKey.Value =
                     new KeyboardShortcut(KeyCode.Insert);
             }
@@ -247,7 +284,7 @@ namespace FieldKit
             EndCategoryPanel();
             EndCategoryColumns();
 
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
     }

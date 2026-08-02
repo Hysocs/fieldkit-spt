@@ -10,7 +10,7 @@ namespace FieldKit
             if (context == null)
                 return;
 
-            HandbookClass handbook = context.HandbookClass;
+            HandbookClass handbook = context.Handbook;
             ItemFactoryClass itemFactory =
                 Singleton<ItemFactoryClass>.Instance;
             RagFairClass ragfair =
@@ -300,7 +300,7 @@ namespace FieldKit
             {
                 localized = data.Item == null
                     ? null
-                    : GClass2348.LocalizedName(data.Item);
+                    : EFT.LocalizationExtensions.LocalizedName(data.Item);
 
                 if (IsResolvedCatalogName(localized, nameKey, data))
                     return localized;
@@ -368,7 +368,7 @@ namespace FieldKit
 
             try
             {
-                return GClass2348.Localized(key, null);
+                return EFT.LocalizationExtensions.Localized(key, null);
             }
             catch
             {

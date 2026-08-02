@@ -114,7 +114,7 @@ namespace FieldKit
             EndCategoryPanel();
             EndCategoryColumns();
 
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
         private void DrawCurrentWeaponStatus()

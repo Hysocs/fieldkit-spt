@@ -35,7 +35,7 @@ namespace FieldKit
                 magazine.Cartridges == null
                     ? null
                     : magazine.Cartridges.Last as AmmoItemClass;
-            Weapon.WeaponMalfunctionStateClass state = weapon.MalfState;
+            Weapon.MalfunctionState state = weapon.MalfState;
             WeaponTemplate template = weapon.Template;
             float currentDurability = weapon.Repairable == null
                 ? 0f
@@ -111,7 +111,7 @@ namespace FieldKit
 
             try
             {
-                string localized = GClass2348.LocalizedName(item);
+                string localized = EFT.LocalizationExtensions.LocalizedName(item);
 
                 if (!string.IsNullOrWhiteSpace(localized) &&
                     !IsInteger(localized))

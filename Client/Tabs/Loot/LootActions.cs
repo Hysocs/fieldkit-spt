@@ -125,7 +125,7 @@ namespace FieldKit
                 PoolManagerClass.PoolsCategory.Raid,
                 PoolManagerClass.AssemblyType.Online,
                 resources,
-                JobPriorityClass.Immediate,
+                Diz.Jobs.JobYieldPriority.Immediate,
                 null,
                 CancellationToken.None);
         }
@@ -271,19 +271,25 @@ namespace FieldKit
             if (application == null || MainMenuControllerField == null)
                 return null;
 
-            MainMenuControllerClass mainMenuController =
-                MainMenuControllerField.GetValue(application)
-                    as MainMenuControllerClass;
-            return mainMenuController == null
-                ? null
-                : mainMenuController.InventoryController;
+            object mainMenuController =
+                MainMenuControllerField.GetValue(application);
+            if (mainMenuController == null)
+                return null;
+
+            PropertyInfo inventoryProperty = AccessTools.Property(
+                mainMenuController.GetType(), "InventoryController");
+            FieldInfo inventoryField = AccessTools.Field(
+                mainMenuController.GetType(), "_inventoryController");
+            return (inventoryProperty?.GetValue(mainMenuController) ??
+                    inventoryField?.GetValue(mainMenuController))
+                as InventoryController;
         }
 
         private async Task<bool> TryAddLootItemToStash(
             string templateId,
             InventoryController controller)
         {
-            StashItemClass stash = controller.Inventory == null
+            Stash stash = controller.Inventory == null
                 ? null
                 : controller.Inventory.Stash;
             if (stash == null)
@@ -342,15 +348,15 @@ namespace FieldKit
         {
             Item item = CreateLootCatalogItem(templateId);
             item.CurrentAddress = controller.CreateItemAddress();
-            GStruct154<GInterface424> placement =
-                InteractionsHandlerClass.QuickFindAppropriatePlace(
+            Diz.LanguageExtensions.OperationResult<IItemOperationResult> placement =
+                ItemManipulator.QuickFindAppropriatePlace(
                     item,
                     controller,
                     targets,
-                    InteractionsHandlerClass.EMoveItemOrder.TryTransfer |
-                    InteractionsHandlerClass.EMoveItemOrder
+                    ItemManipulator.EMoveItemOrder.TryTransfer |
+                    ItemManipulator.EMoveItemOrder
                         .PrioritizeTargetsOrder |
-                    InteractionsHandlerClass.EMoveItemOrder
+                    ItemManipulator.EMoveItemOrder
                         .IgnoreItemParent,
                     true);
             if (placement.Failed)
@@ -367,7 +373,7 @@ namespace FieldKit
                 return false;
             }
 
-            GStruct153 operation = placement;
+            Diz.LanguageExtensions.OperationResult operation = placement;
             IResult result =
                 await controller.TryRunNetworkTransaction(
                     operation,
@@ -475,13 +481,13 @@ namespace FieldKit
             {
                 if (warning)
                 {
-                    NotificationManagerClass.DisplayWarningNotification(
+                    EFT.Communications.NotificationManager.DisplayWarningNotification(
                         message,
                         ENotificationDurationType.Long);
                 }
                 else
                 {
-                    NotificationManagerClass.DisplayMessageNotification(
+                    EFT.Communications.NotificationManager.DisplayMessageNotification(
                         message,
                         ENotificationDurationType.Default,
                         ENotificationIconType.Note,

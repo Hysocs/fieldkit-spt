@@ -68,7 +68,8 @@ namespace FieldKit
                 _harmony.Patch(
                     AccessTools.Method(
                         typeof(EftBulletClass),
-                        "method_17"),
+                        nameof(EftBulletClass.IsHitIgnored),
+                        new[] { typeof(RaycastHit) }),
                     postfix: new HarmonyMethod(
                         AccessTools.Method(
                             typeof(Plugin),
@@ -135,7 +136,7 @@ namespace FieldKit
                             nameof(ScaleLocalAccuracySpread))));
                 _harmony.Patch(
                     AccessTools.Constructor(
-                        typeof(Player.PlayerInventoryController.Class1204),
+                        typeof(Player.PlayerInventoryController.LoadMagazineProcess),
                         new[]
                         {
                             typeof(InventoryController),
@@ -151,7 +152,7 @@ namespace FieldKit
                             nameof(QuickLoadMagazineAmmo))));
                 _harmony.Patch(
                     AccessTools.Constructor(
-                        typeof(Player.PlayerInventoryController.Class1207),
+                        typeof(Player.PlayerInventoryController.UnloadMagazineProcess),
                         new[]
                         {
                             typeof(InventoryController),
@@ -227,7 +228,9 @@ namespace FieldKit
             if (_instance == null ||
                 __instance == null ||
                 !ReferenceEquals(
-                    __instance.FirearmController,
+                    ShotEffectorFirearmControllerField == null
+                        ? null
+                        : ShotEffectorFirearmControllerField.GetValue(__instance),
                     GetLocalFirearmController()))
                 return;
 

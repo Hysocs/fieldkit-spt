@@ -24,7 +24,7 @@ namespace FieldKit
                 return;
 
             _chamsActive = true;
-            _nextChamUpdate = Time.unscaledTime + 1f / 15f;
+            _nextChamUpdate = Time.unscaledTime + 0.1f;
             EnsureChamMaterials();
 
             float maxDistanceSq =
@@ -56,6 +56,7 @@ namespace FieldKit
 
         private void EnsureChamMaterials()
         {
+            bool created = false;
             if (_pmcChamMaterials == null)
             {
                 _pmcChamMaterials = new ChamMaterialSet(
@@ -64,27 +65,41 @@ namespace FieldKit
                     "Scav");
                 _bossChamMaterials = new ChamMaterialSet(
                     "Boss");
+                created = true;
             }
 
-            _lastPmcChamVisible = _pmcChamColor.Value;
-            _lastPmcChamHidden = _pmcChamOccludedColor.Value;
-            _lastScavChamVisible = _scavChamColor.Value;
-            _lastScavChamHidden = _scavChamOccludedColor.Value;
-            _lastBossChamVisible = _bossChamColor.Value;
-            _lastBossChamHidden = _bossChamOccludedColor.Value;
-            _lastChamOpacity = _chamsOpacity.Value;
-            _pmcChamMaterials.Update(
-                GetChamColor(EspKind.Pmc),
-                GetChamColor(EspKind.Pmc, true),
-                _chamsOpacity.Value);
-            _scavChamMaterials.Update(
-                GetChamColor(EspKind.Scav),
-                GetChamColor(EspKind.Scav, true),
-                _chamsOpacity.Value);
-            _bossChamMaterials.Update(
-                GetChamColor(EspKind.Boss),
-                GetChamColor(EspKind.Boss, true),
-                _chamsOpacity.Value);
+            bool colorsChanged =
+                created ||
+                _lastPmcChamVisible != _pmcChamColor.Value ||
+                _lastPmcChamHidden != _pmcChamOccludedColor.Value ||
+                _lastScavChamVisible != _scavChamColor.Value ||
+                _lastScavChamHidden != _scavChamOccludedColor.Value ||
+                _lastBossChamVisible != _bossChamColor.Value ||
+                _lastBossChamHidden != _bossChamOccludedColor.Value ||
+                !Mathf.Approximately(
+                    _lastChamOpacity, _chamsOpacity.Value);
+            if (colorsChanged)
+            {
+                _lastPmcChamVisible = _pmcChamColor.Value;
+                _lastPmcChamHidden = _pmcChamOccludedColor.Value;
+                _lastScavChamVisible = _scavChamColor.Value;
+                _lastScavChamHidden = _scavChamOccludedColor.Value;
+                _lastBossChamVisible = _bossChamColor.Value;
+                _lastBossChamHidden = _bossChamOccludedColor.Value;
+                _lastChamOpacity = _chamsOpacity.Value;
+                _pmcChamMaterials.Update(
+                    GetChamColor(EspKind.Pmc),
+                    GetChamColor(EspKind.Pmc, true),
+                    _chamsOpacity.Value);
+                _scavChamMaterials.Update(
+                    GetChamColor(EspKind.Scav),
+                    GetChamColor(EspKind.Scav, true),
+                    _chamsOpacity.Value);
+                _bossChamMaterials.Update(
+                    GetChamColor(EspKind.Boss),
+                    GetChamColor(EspKind.Boss, true),
+                    _chamsOpacity.Value);
+            }
 
             for (int i = 0; i < _espRoles.Count; i++)
             {
@@ -118,13 +133,7 @@ namespace FieldKit
 
         private void ApplyTargetChams(Target target)
         {
-            if (_chamsPerLimbVisibility.Value)
-            {
-                RestoreTargetMaterialChams(target);
-                ApplyTargetLimbChams(target);
-                return;
-            }
-
+            // Cloning frequently replaced equipment meshes destabilizes SPT 4.1 renderers.
             DestroyTargetLimbChams(target);
             EnsureChamRenderers(target);
 
@@ -173,7 +182,7 @@ namespace FieldKit
                     target.Player.PlayerBody == null)
                     return;
 
-                target.Player.PlayerBody.GetBodyRenderersNonAlloc(
+                target.Player.PlayerBody.GetRenderersNonAlloc(
                     _bodyRenderers);
             }
             catch
@@ -183,27 +192,20 @@ namespace FieldKit
 
             int count = 0;
 
-            for (int i = 0; i < _bodyRenderers.Count; i++)
-            {
-                Renderer[] renderers = _bodyRenderers[i].Renderers;
-
-                if (renderers != null)
-                    count += renderers.Length;
-            }
+            count = _bodyRenderers.Count;
 
             Renderer[] next = new Renderer[count];
             int write = 0;
 
             for (int i = 0; i < _bodyRenderers.Count; i++)
             {
-                Renderer[] renderers = _bodyRenderers[i].Renderers;
-
-                if (renderers == null)
-                    continue;
-
-                for (int j = 0; j < renderers.Length; j++)
-                    next[write++] = renderers[j];
+                Renderer renderer = _bodyRenderers[i];
+                if (renderer != null)
+                    next[write++] = renderer;
             }
+
+            if (write != next.Length)
+                Array.Resize(ref next, write);
 
             target.ChamRenderers = next;
             target.ChamOriginalMaterials = new Material[next.Length][];

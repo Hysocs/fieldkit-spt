@@ -44,7 +44,7 @@ namespace FieldKit
                 GetToggleHotkeyLabel(setting));
         }
 
-        private static Vector2 BeginVerticalScrollView(
+        private Vector2 BeginVerticalScrollView(
             Vector2 position,
             params GUILayoutOption[] options)
         {
@@ -56,6 +56,12 @@ namespace FieldKit
                 GUI.skin.verticalScrollbar,
                 GUI.skin.scrollView,
                 options);
+        }
+
+        private void EndVerticalScrollView()
+        {
+            GUILayout.Space(12f);
+            GUILayout.EndScrollView();
         }
 
         private static void DrawOptionSlider(

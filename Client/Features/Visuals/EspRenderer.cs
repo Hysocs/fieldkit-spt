@@ -5,6 +5,7 @@ namespace FieldKit
     {
         private static readonly string[] EspFontNames =
         {
+            "Tarkov (Native)",
             "Segoe UI",
             "Arial",
             "Calibri",
@@ -1563,13 +1564,23 @@ namespace FieldKit
         {
             Font font = null;
 
+            if (_espFontName != null &&
+                string.Equals(
+                    _espFontName.Value,
+                    "Tarkov (Native)",
+                    StringComparison.OrdinalIgnoreCase))
+                font = FindTarkovMenuFont();
+
             try
             {
-                font = Font.CreateDynamicFontFromOSFont(
-                    _espFontName == null
-                        ? "Segoe UI"
-                        : _espFontName.Value,
-                    16);
+                if (font == null)
+                {
+                    font = Font.CreateDynamicFontFromOSFont(
+                        _espFontName == null
+                            ? "Segoe UI"
+                            : _espFontName.Value,
+                        16);
+                }
             }
             catch { }
 

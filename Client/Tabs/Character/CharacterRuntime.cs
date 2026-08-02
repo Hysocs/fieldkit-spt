@@ -47,6 +47,8 @@ namespace FieldKit
         private void UpdateCharacterTools()
         {
             UpdateFastContainerSearching();
+            UpdateNoFallDamage();
+            UpdateNoMovementInertia();
             UpdateCollisionFreeFlight();
             UpdateCollisionFreeProximity();
             UpdateDisabledPlayerColliders();
@@ -122,6 +124,71 @@ namespace FieldKit
                         amount,
                         new DamageInfoStruct());
             }
+        }
+
+        private void UpdateNoMovementInertia()
+        {
+            if (_localPlayer == null ||
+                !_noMovementInertia.Value)
+                return;
+
+            MovePlayerState state =
+                _localPlayer.MovementContext?.CurrentState
+                    as MovePlayerState;
+            if (state == null)
+                return;
+
+            state.InertiaDirection = state.LastDirectionInput;
+            state.LastNonZeroDirectionInput =
+                state.LastDirectionInput;
+            state.smoothMovementDirectionTime = 0f;
+            state.smoothMovementDirectionDuration = 0f;
+            state.TransitionCoef = 1f;
+
+            RunDirectionBlendVelocityField?.SetValue(
+                state, Vector2.zero);
+            RunDiscreteDirectionDelayField?.SetValue(
+                state, 0f);
+        }
+
+        private void UpdateNoFallDamage()
+        {
+            ActiveHealthController health =
+                _localPlayer == null
+                    ? null
+                    : _localPlayer.ActiveHealthController;
+
+            if (!ReferenceEquals(health, _fallDamageHealthController))
+            {
+                RestoreFallSafeHeight();
+                _fallDamageHealthController = health;
+            }
+
+            if (health == null || !_noFallDamage.Value)
+            {
+                RestoreFallSafeHeight();
+                return;
+            }
+
+            if (!_hasSavedFallSafeHeight)
+            {
+                _savedFallSafeHeight = health.FallSafeHeight;
+                _hasSavedFallSafeHeight = true;
+            }
+
+            health.FallSafeHeight = 100000f;
+        }
+
+        private void RestoreFallSafeHeight()
+        {
+            if (_fallDamageHealthController != null &&
+                _hasSavedFallSafeHeight)
+            {
+                _fallDamageHealthController.FallSafeHeight =
+                    _savedFallSafeHeight;
+            }
+
+            _hasSavedFallSafeHeight = false;
         }
 
         private void RestoreLocalCharacter()

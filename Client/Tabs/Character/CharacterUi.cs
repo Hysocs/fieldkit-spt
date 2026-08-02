@@ -195,7 +195,7 @@ namespace FieldKit
             EndCategoryColumns();
 
             GUILayout.Space(36f);
-            GUILayout.EndScrollView();
+            EndVerticalScrollView();
         }
 
         private static void DrawCharacterSlider(

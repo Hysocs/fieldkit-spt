@@ -25,7 +25,7 @@ namespace FieldKit
             _bodyRenderers.Clear();
             try
             {
-                target.Player.PlayerBody.GetBodyRenderersNonAlloc(
+                target.Player.PlayerBody.GetRenderersNonAlloc(
                     _bodyRenderers);
             }
             catch
@@ -37,23 +37,12 @@ namespace FieldKit
                  groupIndex < _bodyRenderers.Count;
                  groupIndex++)
             {
-                Renderer[] renderers =
-                    _bodyRenderers[groupIndex].Renderers;
-                if (renderers == null)
-                    continue;
-
-                for (int rendererIndex = 0;
-                     rendererIndex < renderers.Length;
-                     rendererIndex++)
-                {
-                    SkinnedMeshRenderer renderer =
-                        renderers[rendererIndex] as
-                            SkinnedMeshRenderer;
-                    LimbChamSkin skin =
-                        BuildLimbChamSkin(target, renderer);
-                    if (skin != null)
-                        target.LimbChamSkins.Add(skin);
-                }
+                SkinnedMeshRenderer renderer =
+                    _bodyRenderers[groupIndex] as SkinnedMeshRenderer;
+                LimbChamSkin skin =
+                    BuildLimbChamSkin(target, renderer);
+                if (skin != null)
+                    target.LimbChamSkins.Add(skin);
             }
         }
 
@@ -318,9 +307,11 @@ namespace FieldKit
                 {
                     bool visible =
                         !_visibilityCheck.Value ||
-                        !target.HasPerBoneVisibility ||
-                        (target.VisibleBones &
-                         skin.SubmeshLimbs[part]) != 0;
+                        (target.HasPerBoneVisibility
+                            ? (target.VisibleBones &
+                               skin.SubmeshLimbs[part]) != 0
+                            : !target.HasVisibility ||
+                              target.IsVisible);
                     Material material = visible
                         ? materials.Visible
                         : materials.Occluded;

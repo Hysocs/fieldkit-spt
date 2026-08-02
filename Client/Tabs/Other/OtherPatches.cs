@@ -18,10 +18,8 @@ namespace FieldKit
 
                 _harmony.Patch(
                     AccessTools.Method(
-                        typeof(Player.PlayerInventoryController),
-                        nameof(
-                            Player.PlayerInventoryController
-                                .CheckItemAction),
+                        typeof(ItemController),
+                        nameof(ItemController.CheckItemAction),
                         new[]
                         {
                             typeof(Item),

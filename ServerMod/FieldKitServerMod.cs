@@ -1,6 +1,8 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Items;
+using SPTarkov.Server.Core.Helpers.Profile;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
@@ -9,28 +11,29 @@ using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Routers;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Services.Commerce;
 using SPTarkov.Server.Core.Utils;
 
 namespace FieldKit.Server;
 
-public record FieldKitServerMetadata : AbstractModMetadata
+public record FieldKitServerMetadata : IModMetadata
 {
-    public override string ModGuid { get; init; } =
+    public string ModGuid { get; init; } =
         "com.hysocs.fieldkit";
-    public override string Name { get; init; } = "HysocsFieldKit";
-    public override string Author { get; init; } = "Hysocs";
-    public override List<string>? Contributors { get; init; }
-    public override SemanticVersioning.Version Version { get; init; } =
-        new("1.1.0");
-    public override SemanticVersioning.Range SptVersion { get; init; } =
-        new("~4.0.0");
-    public override List<string>? Incompatibilities { get; init; }
-    public override Dictionary<string, SemanticVersioning.Range>?
+    public string Name { get; init; } = "HysocsFieldKit";
+    public string Author { get; init; } = "Hysocs";
+    public List<string>? Contributors { get; init; }
+    public SemanticVersioning.Version Version { get; init; } =
+        new("1.2.0");
+    public SemanticVersioning.Range SptVersion { get; init; } =
+        new("~4.1.0");
+    public bool HasPrepatcher { get; init; }
+    public List<string>? Incompatibilities { get; init; }
+    public Dictionary<string, SemanticVersioning.Range>?
         ModDependencies { get; init; }
-    public override string? Url { get; init; } =
+    public string? Url { get; init; } =
         "https://github.com/Hysocs/fieldkit-spt";
-    public override bool? IsBundleMod { get; init; }
-    public override string License { get; init; } = "Apache-2.0";
+    public string License { get; init; } = "Apache-2.0";
 }
 
 [Injectable]
@@ -42,20 +45,20 @@ public sealed class FieldKitInventoryRouter(
         [
             new RouteAction<FieldKitAddItemRequest>(
                 "/fieldkit/inventory/add",
-                async (url, info, sessionId, output) =>
+                async (url, info, sessionId, output, cancellationToken) =>
                     await callback.AddItemToStash(
                         url,
                         info,
                         sessionId)),
             new RouteAction<FieldKitPrepareItemRequest>(
                 "/fieldkit/inventory/prepare",
-                async (url, info, sessionId, output) =>
+                async (url, info, sessionId, output, cancellationToken) =>
                     await callback.PrepareItem(
                         info,
                         sessionId)),
             new RouteAction<FieldKitCancelItemRequest>(
                 "/fieldkit/inventory/cancel",
-                async (url, info, sessionId, output) =>
+                async (url, info, sessionId, output, cancellationToken) =>
                     await callback.CancelPreparedItem(
                         info,
                         sessionId))

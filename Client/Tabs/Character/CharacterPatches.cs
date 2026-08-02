@@ -37,16 +37,19 @@ namespace FieldKit
                             typeof(float),
                             typeof(float)
                         });
-                _harmony.Patch(
-                    damageReactionMethod,
-                    prefix: new HarmonyMethod(
-                        AccessTools.Method(
-                            typeof(Plugin),
-                            nameof(BeginVisualDamageReaction))),
-                    postfix: new HarmonyMethod(
-                        AccessTools.Method(
-                            typeof(Plugin),
-                            nameof(EndVisualDamageReaction))));
+                if (damageReactionMethod != null)
+                {
+                    _harmony.Patch(
+                        damageReactionMethod,
+                        prefix: new HarmonyMethod(
+                            AccessTools.Method(
+                                typeof(Plugin),
+                                nameof(BeginVisualDamageReaction))),
+                        postfix: new HarmonyMethod(
+                            AccessTools.Method(
+                                typeof(Plugin),
+                                nameof(EndVisualDamageReaction))));
+                }
                 _harmony.Patch(
                     damageForceMethod,
                     prefix: new HarmonyMethod(
@@ -192,35 +195,45 @@ namespace FieldKit
                         AccessTools.Method(
                             typeof(Plugin),
                             nameof(SuppressLocalMovementSound))));
-                _harmony.Patch(
+                MethodInfo movementNoiseMethod =
                     AccessTools.Method(
                         typeof(MovementContext),
                         "method_1",
-                        new[] { typeof(Vector3) }),
+                        new[] { typeof(Vector3) });
+                if (movementNoiseMethod != null)
+                {
+                    _harmony.Patch(
+                        movementNoiseMethod,
+                        prefix: new HarmonyMethod(
+                            AccessTools.Method(
+                                typeof(Plugin),
+                                nameof(SuppressLocalMovementNoiseEvent))));
+                }
+
+                _harmony.Patch(
+                    AccessTools.Method(
+                        typeof(MovePlayerState),
+                        "ProcessDirection"),
                     prefix: new HarmonyMethod(
                         AccessTools.Method(
                             typeof(Plugin),
-                            nameof(SuppressLocalMovementNoiseEvent))));
-
-                if (RunMovementStateType != null)
-                {
-                    _harmony.Patch(
+                            nameof(RemoveLocalDirectionSmoothing))));
+                _harmony.Patch(
+                    AccessTools.Method(
+                        typeof(MovePlayerState),
+                        "UpdateMovementDirection"),
+                    prefix: new HarmonyMethod(
                         AccessTools.Method(
-                            RunMovementStateType,
-                            "method_1"),
-                        prefix: new HarmonyMethod(
-                            AccessTools.Method(
-                                typeof(Plugin),
-                                nameof(ScaleLocalRunAcceleration))));
-                    _harmony.Patch(
+                            typeof(Plugin),
+                            nameof(RemoveLocalDirectionChangeDelay))));
+                _harmony.Patch(
+                    AccessTools.Method(
+                        typeof(MovePlayerState),
+                        nameof(MovePlayerState.SetSmoothDiscreteDirection)),
+                    prefix: new HarmonyMethod(
                         AccessTools.Method(
-                            RunMovementStateType,
-                            "method_2"),
-                        prefix: new HarmonyMethod(
-                            AccessTools.Method(
-                                typeof(Plugin),
-                                nameof(SnapLocalRunDirection))));
-                }
+                            typeof(Plugin),
+                            nameof(ApplyLocalDirectionImmediately))));
                 if (JumpMovementStateType != null &&
                     JumpLiftVelocityField != null)
                 {
@@ -382,7 +395,7 @@ namespace FieldKit
             if (!IsLocalMovement(__instance))
                 return;
 
-            BasePhysicalClass physical =
+            PhysicalBase physical =
                 _instance._localPlayer.Physical;
             bool sprinting =
                 physical != null && physical.Sprinting;
@@ -537,7 +550,7 @@ namespace FieldKit
             SimpleCharacterController __instance,
             CollisionFreeMoveState __state,
             ref LayerMask ____collisionMask,
-            ref Vector3 ___vector3_1)
+            ref Vector3 ____currentPosition)
         {
             if (!__state.Active ||
                 _instance == null ||
@@ -551,7 +564,7 @@ namespace FieldKit
                 __state.StartPosition + __state.IntendedMotion;
             Vector3 resolvedPosition = __state.CollisionFree
                 ? unrestrictedPosition
-                : ___vector3_1;
+                : ____currentPosition;
 
             if (!__state.Fly)
             {
@@ -582,7 +595,7 @@ namespace FieldKit
             else if (__state.CollisionFree || grounded)
                 __instance.isGrounded = grounded;
 
-            ___vector3_1 = resolvedPosition;
+            ____currentPosition = resolvedPosition;
 
             Collider controllerCollider = __instance.GetCollider();
             if (controllerCollider != null)
@@ -705,6 +718,55 @@ namespace FieldKit
             }
 
             __0 *= _instance._accelerationMultiplier.Value;
+        }
+
+        private static void RemoveLocalDirectionSmoothing(
+            MovePlayerState __instance,
+            ref float __1)
+        {
+            if (_instance != null &&
+                _instance._noMovementInertia.Value &&
+                _instance._localPlayer != null &&
+                ReferenceEquals(
+                    _instance._localPlayer.MovementContext.CurrentState,
+                    __instance))
+                __1 = 0f;
+        }
+
+        private static void RemoveLocalDirectionChangeDelay(
+            MovePlayerState __instance)
+        {
+            if (_instance == null ||
+                !_instance._noMovementInertia.Value ||
+                _instance._localPlayer == null ||
+                !ReferenceEquals(
+                    _instance._localPlayer.MovementContext.CurrentState,
+                    __instance))
+                return;
+
+            // Opposing input is otherwise zeroed until moveTime expires.
+            __instance.prevDirection = Vector2.zero;
+            __instance.nextDirection = Vector2.zero;
+            __instance.moveTime = 0f;
+        }
+
+        private static bool ApplyLocalDirectionImmediately(
+            MovePlayerState __instance,
+            EMovementDirection direction)
+        {
+            if (_instance == null ||
+                !_instance._noMovementInertia.Value ||
+                _instance._localPlayer == null ||
+                !ReferenceEquals(
+                    _instance._localPlayer.MovementContext.CurrentState,
+                    __instance))
+                return true;
+
+            __instance.SetMovementDiscreteDirection(direction);
+            __instance.prevMovementNonZeroDirection = direction;
+            __instance.smoothMovementDirectionTime = 0f;
+            __instance.smoothMovementDirectionDuration = 0f;
+            return false;
         }
 
         private static void SnapLocalRunDirection(

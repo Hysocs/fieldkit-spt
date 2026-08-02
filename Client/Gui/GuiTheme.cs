@@ -57,6 +57,9 @@ namespace FieldKit
 
             _adminSkin = Instantiate(GUI.skin);
             _adminSkin.name = "FieldKit Skin";
+            Font menuFont = LoadMenuFont();
+            if (menuFont != null)
+                ApplyMenuFont(_adminSkin, menuFont);
 
             ConfigureStyle(
                 _adminSkin.window,
@@ -121,7 +124,14 @@ namespace FieldKit
                 new RectOffset(18, 45, 0, 0);
             _adminSkin.toggle.padding = new RectOffset(25, 4, 4, 4);
             _adminSkin.toggle.margin = new RectOffset(2, 2, 2, 2);
-            _adminSkin.toggle.fixedHeight = 24f;
+            _adminSkin.toggle.fontSize = 13;
+            _adminSkin.toggle.wordWrap = false;
+            _adminSkin.toggle.fixedHeight = Mathf.Ceil(
+                Mathf.Max(
+                    30f,
+                    _adminSkin.toggle.CalcHeight(
+                        new GUIContent("Ag"),
+                        400f) + 8f));
             _adminSkin.toggle.alignment = TextAnchor.MiddleLeft;
 
             _adminSkin.label.normal.textColor = text;
@@ -506,6 +516,94 @@ namespace FieldKit
             style.onActive.textColor = activeText;
             style.onFocused.background = active;
             style.onFocused.textColor = activeText;
+        }
+
+        private static Font FindTarkovMenuFont()
+        {
+            Font[] fonts = Resources.FindObjectsOfTypeAll<Font>();
+            Font fallback = null;
+            for (int i = 0; i < fonts.Length; i++)
+            {
+                Font font = fonts[i];
+                if (font == null || string.IsNullOrEmpty(font.name))
+                    continue;
+
+                string name = font.name.ToLowerInvariant();
+                if (name.Contains("bender"))
+                    return font;
+                if (fallback == null &&
+                    (name.Contains("din") ||
+                     name.Contains("neusa") ||
+                     name.Contains("tarkov")))
+                    fallback = font;
+            }
+
+            return fallback;
+        }
+
+        private Font LoadMenuFont()
+        {
+            string name = _menuFontName == null
+                ? "Segoe UI"
+                : _menuFontName.Value;
+            if (string.Equals(
+                    name,
+                    "Tarkov (Native)",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                Font native = FindTarkovMenuFont();
+                if (native != null)
+                    return native;
+            }
+
+            try
+            {
+                return Font.CreateDynamicFontFromOSFont(name, 16);
+            }
+            catch
+            {
+                return GUI.skin == null ? null : GUI.skin.font;
+            }
+        }
+
+        private void OnMenuFontSettingChanged(
+            object sender,
+            EventArgs args)
+        {
+            _guiThemeRefreshRequested = true;
+        }
+
+        private static void ApplyMenuFont(
+            GUISkin skin,
+            Font font)
+        {
+            skin.font = font;
+            GUIStyle[] styles =
+            {
+                skin.box,
+                skin.button,
+                skin.horizontalScrollbar,
+                skin.horizontalScrollbarLeftButton,
+                skin.horizontalScrollbarRightButton,
+                skin.horizontalScrollbarThumb,
+                skin.horizontalSlider,
+                skin.horizontalSliderThumb,
+                skin.label,
+                skin.scrollView,
+                skin.textArea,
+                skin.textField,
+                skin.toggle,
+                skin.verticalScrollbar,
+                skin.verticalScrollbarDownButton,
+                skin.verticalScrollbarThumb,
+                skin.verticalScrollbarUpButton,
+                skin.verticalSlider,
+                skin.verticalSliderThumb,
+                skin.window
+            };
+            for (int i = 0; i < styles.Length; i++)
+                if (styles[i] != null)
+                    styles[i].font = font;
         }
 
         private void DisposeGuiTheme()

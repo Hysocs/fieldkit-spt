@@ -294,6 +294,7 @@ namespace FieldKit
             Color previousColor = GUI.color;
             Color previousBackground = GUI.backgroundColor;
             Color previousContent = GUI.contentColor;
+            Matrix4x4 previousMatrix = GUI.matrix;
 
             try
             {
@@ -304,6 +305,10 @@ namespace FieldKit
 
                 if (_menuOpen)
                 {
+                    float menuScale = MenuScale;
+                    GUI.matrix = Matrix4x4.Scale(
+                        new Vector3(menuScale, menuScale, 1f)) *
+                        previousMatrix;
                     UpdateMenuGeometry();
                     _menuRect = GUI.Window(
                         731904,
@@ -313,6 +318,7 @@ namespace FieldKit
                     DrawAttachedTabInfoPanel();
                     DrawColorPickerPopout();
                     DrawLootQuantityPopup();
+                    GUI.matrix = previousMatrix;
                 }
 
                 DrawWeaponDiagnosticsPanel();
@@ -327,6 +333,7 @@ namespace FieldKit
                 GUI.color = previousColor;
                 GUI.backgroundColor = previousBackground;
                 GUI.contentColor = previousContent;
+                GUI.matrix = previousMatrix;
                 RecordPerf(
                     perfStarted,
                     ref _perfGuiTicks,
@@ -344,6 +351,9 @@ namespace FieldKit
             if (_guiPrimaryColor != null)
                 _guiPrimaryColor.SettingChanged -=
                     OnGuiPrimaryColorChanged;
+            if (_menuFontName != null)
+                _menuFontName.SettingChanged -=
+                    OnMenuFontSettingChanged;
             Canvas.preWillRenderCanvases -= RenderEspFrame;
             SetMenuOpen(false);
             CloseLivingAiInventory();
@@ -353,6 +363,7 @@ namespace FieldKit
             ClearForcedAutomaticQueue(_equippedWeaponController);
             _forcedAutoTriggerHeld = false;
             RestoreForcedVisionOverrides();
+            RestoreFallSafeHeight();
             ReleaseFriendlyAi();
             ReleaseNoWeightOverride();
             RestoreContainerSearchOverride();
@@ -517,9 +528,9 @@ namespace FieldKit
             {
                 try
                 {
-                    GClass774 stamina = _localPlayer.Physical.Stamina;
-                    GClass774 hands = _localPlayer.Physical.HandsStamina;
-                    GClass774 oxygen = _localPlayer.Physical.Oxygen;
+                    Stamina stamina = _localPlayer.Physical.Stamina;
+                    Stamina hands = _localPlayer.Physical.HandsStamina;
+                    Stamina oxygen = _localPlayer.Physical.Oxygen;
 
                     if (stamina != null)
                         stamina.Current = stamina.TotalCapacity;

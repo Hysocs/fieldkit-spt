@@ -15,22 +15,39 @@ namespace FieldKit
         private const float PreferredMenuHeight = 820f;
         private const float MinimumMenuWidth = 680f;
         private const float MinimumMenuHeight = 520f;
-        private static float MenuWidth =>
+        private float MaximumMenuScale =>
+            Mathf.Max(
+                0.5f,
+                Mathf.Min(
+                    Screen.width / (PreferredMenuWidth + 32f),
+                    Screen.height / (PreferredMenuHeight + 32f)));
+        private float MenuScale =>
+            _menuUiScale == null
+                ? 1f
+                : Mathf.Clamp(
+                    _menuUiScale.Value,
+                    0.5f,
+                    MaximumMenuScale);
+        private float VirtualScreenWidth =>
+            Screen.width / MenuScale;
+        private float VirtualScreenHeight =>
+            Screen.height / MenuScale;
+        private float MenuWidth =>
             Mathf.Clamp(
-                Screen.width - 32f,
-                Mathf.Min(MinimumMenuWidth, Screen.width),
+                VirtualScreenWidth - 32f,
+                Mathf.Min(MinimumMenuWidth, VirtualScreenWidth),
                 PreferredMenuWidth);
         private float CurrentMenuWidth =>
             Mathf.Clamp(
-                Screen.width - 32f,
-                Mathf.Min(MinimumMenuWidth, Screen.width),
+                VirtualScreenWidth - 32f,
+                Mathf.Min(MinimumMenuWidth, VirtualScreenWidth),
                 PreferredMenuWidth);
-        private static float MenuHeight =>
+        private float MenuHeight =>
             Mathf.Clamp(
-                Screen.height - 32f,
-                Mathf.Min(MinimumMenuHeight, Screen.height),
+                VirtualScreenHeight - 32f,
+                Mathf.Min(MinimumMenuHeight, VirtualScreenHeight),
                 PreferredMenuHeight);
-        private static float MenuColumnWidth =>
+        private float MenuColumnWidth =>
             Mathf.Max(300f, (MenuWidth - 48f) * 0.5f);
         private const float AttachedInfoWidth = 285f;
         private ConfigEntry<float> _menuWindowX;
@@ -47,7 +64,11 @@ namespace FieldKit
         private int _characterSection;
         private bool _menuOpen;
         private Rect _menuRect =
-            new Rect(30f, 30f, MenuWidth, MenuHeight);
+            new Rect(
+                30f,
+                30f,
+                PreferredMenuWidth,
+                PreferredMenuHeight);
         private CursorLockMode _previousCursorLock;
         private bool _previousCursorVisible;
         private Texture2D _menuCursorTexture;
@@ -79,9 +100,6 @@ namespace FieldKit
             if (_menuCursorTexture != null)
                 return;
 
-            // Unity displays software cursors at native texture size. Keep
-            // this at a fixed 2:3 pixel aspect so ultrawide and 4:3 screens
-            // do not stretch or scale it differently.
             const int width = 14;
             const int height = 21;
             bool[,] fill = new bool[width, height];
@@ -272,21 +290,25 @@ namespace FieldKit
             _menuRect.x = Mathf.Clamp(
                 _menuRect.x,
                 0f,
-                Mathf.Max(0f, Screen.width - _menuRect.width));
+                Mathf.Max(
+                    0f,
+                    VirtualScreenWidth - _menuRect.width));
             _menuRect.y = Mathf.Clamp(
                 _menuRect.y,
                 0f,
-                Mathf.Max(0f, Screen.height - _menuRect.height));
+                Mathf.Max(
+                    0f,
+                    VirtualScreenHeight - _menuRect.height));
         }
 
-        private static void BeginCategoryColumns()
+        private void BeginCategoryColumns()
         {
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(
                 GUILayout.Width(MenuColumnWidth));
         }
 
-        private static void NextCategoryColumn()
+        private void NextCategoryColumn()
         {
             GUILayout.EndVertical();
             GUILayout.BeginVertical(
@@ -361,7 +383,8 @@ namespace FieldKit
                 ? _characterSection == 0 ? 205f : 150f
                 : 175f;
             _attachedInfoRect = new Rect(
-                _menuRect.xMax + AttachedInfoWidth + 8f <= Screen.width
+                _menuRect.xMax + AttachedInfoWidth + 8f <=
+                    VirtualScreenWidth
                     ? _menuRect.xMax + 8f
                     : Mathf.Max(0f, _menuRect.x - AttachedInfoWidth - 8f),
                 _menuRect.y + 34f,

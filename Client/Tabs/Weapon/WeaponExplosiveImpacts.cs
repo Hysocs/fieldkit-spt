@@ -16,10 +16,10 @@ namespace FieldKit
             Vector3 point = hit.point + hit.normal * 0.05f;
             ImpactExplosiveItem explosion =
                 new ImpactExplosiveItem(bullet.Ammo as AmmoItemClass);
-            ISharedBallisticsCalculator calculator =
+            EFT.Ballistics.IBallisticsCalculator calculator =
                 Singleton<GameWorld>.Instance.SharedBallisticsCalculator;
 
-            GClass2085.Explosion(
+            EFT.ExplosionSharedMethods.Explosion(
                 explosion,
                 point,
                 bullet.PlayerProfileID,
