@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>FieldKit.Server</AssemblyName>
     <RootNamespace>FieldKit.Server</RootNamespace>
-    <Version>1.2.0</Version>
+    <Version>1.4.0</Version>
     <OutputPath>bin\$(Configuration)\FieldKit.Server\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <!-- The ZIP is a build output that Visual Studio's fast check cannot
@@ -15,6 +15,7 @@
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.Server.ForceRebuild.g.cs</FieldKitForceRebuildFile>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
+    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.1</SptRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,37 +23,41 @@
              AutoGen="true"
              DesignTime="false"
              Visible="false" />
-    <ProjectReference Include="..\FieldKit.csproj"
+    <ProjectReference Include="..\Client\FieldKit.Client.csproj"
                       ReferenceOutputAssembly="false" />
     <Reference Include="SemanticVersioning">
-      <HintPath>..\..\..\SPT_Runtime\SemanticVersioning.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(SptRoot)\SPT_Runtime\0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Common">
-      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Common.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SPTarkov.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.DI">
-      <HintPath>..\..\..\SPT_Runtime\SPTarkov.DI.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SPTarkov.DI.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Server.Core">
-      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Core.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SPTarkov.Server.Core.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Server.Assets">
-      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Assets.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SPTarkov.Server.Assets.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SPTarkov.Server.Web">
-      <HintPath>..\..\..\SPT_Runtime\SPTarkov.Server.Web.dll</HintPath>
+      <HintPath>$(SptRoot)\SPT_Runtime\SPTarkov.Server.Web.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
 
   <PropertyGroup>
-    <FieldKitServerInstallDir>$(MSBuildProjectDirectory)\..\..\..\SPT_Runtime\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
-    <FieldKitClientDll>$(MSBuildProjectDirectory)\..\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
+    <FieldKitServerInstallDir>$(SptRoot)\SPT_Runtime\user\mods\HysocsFieldKit</FieldKitServerInstallDir>
+    <FieldKitClientDll>$(MSBuildProjectDirectory)\..\Client\bin\$(Configuration)\netstandard2.1\FieldKit.dll</FieldKitClientDll>
     <FieldKitLicense>$(MSBuildProjectDirectory)\..\LICENSE</FieldKitLicense>
     <FieldKitPackageRoot>$(MSBuildProjectDirectory)\..\dist\FieldKit-$(Version)</FieldKitPackageRoot>
     <FieldKitPackageZip>$(MSBuildProjectDirectory)\..\dist\FieldKit-$(Version).zip</FieldKitPackageZip>

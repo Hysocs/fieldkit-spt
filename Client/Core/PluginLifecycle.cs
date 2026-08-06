@@ -23,6 +23,11 @@ namespace FieldKit
             _showExtractions = Config.Bind(
                 "ESP Extractions", "Enabled", true,
                 "Show every extraction point on the map.");
+            _cullWorldEspInScopes = Config.Bind(
+                "ESP",
+                "Cull Loot and Extractions from Scopes",
+                false,
+                "Hide loot, container, and extraction ESP completely inside an active optic lens.");
             _extractionColor = Config.Bind(
                 "ESP Extractions", "Map Exit Color", "#F59E0BFF",
                 "RGBA color for map exits unavailable to the local player.");
@@ -275,6 +280,7 @@ namespace FieldKit
             long perfStarted = PerfTimestamp();
             MaintainMenuCursor();
             HandleMenuShortcutGuiEvent();
+            HandleToggleHotkeyGuiEvent();
             if (!_menuOpen &&
                 (_showWeaponDiagnostics == null ||
                  !_showWeaponDiagnostics.Value) &&

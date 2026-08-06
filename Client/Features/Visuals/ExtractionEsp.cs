@@ -4,6 +4,8 @@ namespace FieldKit
     {
         private void AppendExtractionEsp(
             Vector3 localPosition,
+            Rect scopeMask,
+            bool hasScopeMask,
             ref int labelIndex)
         {
             if (_showExtractions == null ||
@@ -29,14 +31,15 @@ namespace FieldKit
                 if (distanceSq > maxDistanceSq)
                     continue;
 
-                Vector3 screen =
-                    _camera.WorldToScreenPoint(position);
                 Vector2 canvasPosition;
-                if (screen.z <= 0f ||
-                    !TryScreenPointToCanvas(
+                if (!TryWorldPointToCanvas(
+                        _camera,
                         _canvasRect,
-                        new Vector2(screen.x, screen.y),
+                        position,
                         out canvasPosition))
+                    continue;
+                if (hasScopeMask &&
+                    IsInsideEllipse(canvasPosition, scopeMask))
                     continue;
 
                 bool usable = _usableExtractionIds.Contains(
@@ -52,8 +55,12 @@ namespace FieldKit
                     (usable ? " | USABLE" : "");
                 label.color = color;
                 label.fontSize = _fontSize.Value;
-                labelRect.pivot = new Vector2(0.5f, 0.5f);
-                labelRect.anchoredPosition = canvasPosition;
+                // Labels share one pool with character and loot ESP. Keep
+                // the pool's bottom-center pivot so changing visibility does
+                // not reuse a RectTransform with a different vertical origin.
+                labelRect.pivot = new Vector2(0.5f, 0f);
+                labelRect.anchoredPosition =
+                    canvasPosition + new Vector2(0f, 5f);
                 label.gameObject.SetActive(true);
             }
         }

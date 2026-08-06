@@ -9,7 +9,7 @@
     <Nullable>disable</Nullable>
     <Authors>Hysocs</Authors>
     <Copyright></Copyright>
-    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <AssemblyVersion>1.4.0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
     <Configurations>Debug;Release;Package</Configurations>
     <Version>$(AssemblyVersion)</Version>
@@ -18,6 +18,7 @@
     <Deterministic>true</Deterministic>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.1</SptRoot>
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.ForceRebuild.g.cs</FieldKitForceRebuildFile>
   </PropertyGroup>
@@ -53,96 +54,95 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ServerMod\**\*.cs" />
     <Reference Include="PhysicsModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="0Harmony">
-      <HintPath>..\..\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>$(SptRoot)\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="spt-common">
-      <HintPath>..\..\BepInEx\plugins\spt\spt-common.dll</HintPath>
+      <HintPath>$(SptRoot)\BepInEx\plugins\spt\spt-common.dll</HintPath>
     </Reference>
     <Reference Include="spt-reflection">
-      <HintPath>..\..\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
+      <HintPath>$(SptRoot)\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="AnimationSystem.Types">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\AnimationSystem.Types.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\AnimationSystem.Types.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\BepInEx\core\BepInEx.dll</HintPath>
+      <HintPath>$(SptRoot)\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="Comfort">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Comfort.dll</HintPath>
     </Reference>
     <Reference Include="Comfort.Unity, Version=1.0.0.4, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Comfort.Unity.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Comfort.Unity.dll</HintPath>
     </Reference>
     <Reference Include="DissonanceVoip">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\DissonanceVoip.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\DissonanceVoip.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Sirenix.Serialization, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Sirenix.Serialization.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Sirenix.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.AIModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.AIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
-      <HintPath>..\..\EscapeFromTarkov_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>$(SptRoot)\EscapeFromTarkov_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(FieldKitWeaponOnly)' == 'true'">
-    <Compile Remove="Client\**\*.cs" />
-    <Compile Include="Client\GlobalUsings.cs" />
-    <Compile Include="Client\Tabs\Weapon\**\*.cs" />
-    <Compile Remove="Client\Tabs\Weapon\WeaponUi.cs" />
-    <Compile Include="Client\WeaponOnlyStubs.cs" />
+    <Compile Remove="**\*.cs" />
+    <Compile Include="GlobalUsings.cs" />
+    <Compile Include="Tabs\Weapon\**\*.cs" />
+    <Compile Remove="Tabs\Weapon\WeaponUi.cs" />
+    <Compile Include="WeaponOnlyStubs.cs" />
   </ItemGroup>
 
   <PropertyGroup>
-    <FieldKitClientInstallDir>$(MSBuildProjectDirectory)\..\..\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
+    <FieldKitClientInstallDir>$(SptRoot)\BepInEx\plugins\Hysocs-FieldKit</FieldKitClientInstallDir>
   </PropertyGroup>
 
   <Target Name="DeployFieldKitClient"

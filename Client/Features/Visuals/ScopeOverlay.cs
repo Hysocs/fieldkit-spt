@@ -302,36 +302,20 @@ namespace FieldKit
                     overlay.LensRenderer = ResolveOpticLens(overlay.Camera);
                 }
 
-                Rect screenRect;
+                Rect canvasRect;
 
-                if (!TryProjectRendererBounds(
-                    overlay.LensRenderer, _camera, out screenRect))
+                if (!TryProjectRendererBoundsToCanvas(
+                    overlay.LensRenderer, _camera, out canvasRect))
                     continue;
-                float insetX = screenRect.width * 0.06f;
-                float insetY = screenRect.height * 0.06f;
-                screenRect.xMin += insetX;
-                screenRect.xMax -= insetX;
-                screenRect.yMin += insetY;
-                screenRect.yMax -= insetY;
+                float insetX = canvasRect.width * 0.06f;
+                float insetY = canvasRect.height * 0.06f;
+                canvasRect.xMin += insetX;
+                canvasRect.xMax -= insetX;
+                canvasRect.yMin += insetY;
+                canvasRect.yMax -= insetY;
 
-                Vector2 localMin;
-                Vector2 localMax;
-
-                if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        _canvasRect,
-                        new Vector2(screenRect.xMin, screenRect.yMin),
-                        null,
-                        out localMin) ||
-                    !RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        _canvasRect,
-                        new Vector2(screenRect.xMax, screenRect.yMax),
-                        null,
-                        out localMax))
-                    continue;
-
-                localRect = Rect.MinMaxRect(
-                    localMin.x, localMin.y, localMax.x, localMax.y);
-                overlay.LastLensScreenRect = screenRect;
+                localRect = canvasRect;
+                overlay.LastLensScreenRect = canvasRect;
                 overlay.HasLensScreenRect = true;
                 return true;
             }
@@ -339,14 +323,14 @@ namespace FieldKit
             return false;
         }
 
-        private static bool TryProjectRendererBounds(
+        private bool TryProjectRendererBoundsToCanvas(
             Renderer renderer,
             Camera camera,
-            out Rect screenRect)
+            out Rect canvasRect)
         {
-            screenRect = default(Rect);
+            canvasRect = default(Rect);
 
-            if (renderer == null || camera == null)
+            if (renderer == null || camera == null || _canvasRect == null)
                 return false;
 
             Bounds bounds = renderer.bounds;
@@ -364,22 +348,23 @@ namespace FieldKit
                     {
                         Vector3 point = center + Vector3.Scale(
                             extents, new Vector3(x, y, z));
-                        Vector3 screen = camera.WorldToScreenPoint(point);
+                        Vector2 projected;
 
-                        if (screen.z <= 0f)
+                        if (!TryWorldPointToCanvas(
+                                camera, _canvasRect, point, out projected))
                             continue;
 
                         found = true;
-                        minX = Mathf.Min(minX, screen.x);
-                        minY = Mathf.Min(minY, screen.y);
-                        maxX = Mathf.Max(maxX, screen.x);
-                        maxY = Mathf.Max(maxY, screen.y);
+                        minX = Mathf.Min(minX, projected.x);
+                        minY = Mathf.Min(minY, projected.y);
+                        maxX = Mathf.Max(maxX, projected.x);
+                        maxY = Mathf.Max(maxY, projected.y);
                     }
 
             if (!found || maxX - minX < 10f || maxY - minY < 10f)
                 return false;
 
-            screenRect = Rect.MinMaxRect(minX, minY, maxX, maxY);
+            canvasRect = Rect.MinMaxRect(minX, minY, maxX, maxY);
             return true;
         }
 
@@ -500,6 +485,13 @@ namespace FieldKit
                     }
                 }
 
+                if (_cullWorldEspInScopes == null ||
+                    !_cullWorldEspInScopes.Value)
+                {
+                    AppendScopeLootEsp(overlay, localPosition);
+                    AppendScopeExtractionEsp(overlay, localPosition);
+                }
+
                 overlay.Pass.SetGeometry(
                     overlay.Boxes,
                     overlay.Lines,
@@ -571,6 +563,226 @@ namespace FieldKit
             }
 
             return closest;
+        }
+
+        private void AppendScopeLootEsp(
+            ScopeOverlay overlay,
+            Vector3 localPosition)
+        {
+            if (_lootEspEnabled == null ||
+                !_lootEspEnabled.Value ||
+                overlay == null ||
+                overlay.Camera == null)
+                return;
+
+            float maxDistanceSq =
+                _lootEspCullDistance.Value *
+                _lootEspCullDistance.Value;
+            for (int i = 0; i < _lootEspEntries.Count; i++)
+            {
+                LootEspEntry entry = _lootEspEntries[i];
+                LootItem loot = entry.Loot;
+                if (entry.Clustered ||
+                    !IsLooseWorldLoot(loot) ||
+                    loot.Item == null)
+                    continue;
+
+                float distanceSq =
+                    (loot.transform.position - localPosition).sqrMagnitude;
+                if (distanceSq > maxDistanceSq)
+                    continue;
+
+                Vector2 screen;
+                if (!TryWorldPointToScope(
+                        overlay.Camera, entry.MarkerPosition, out screen))
+                    continue;
+
+                Color color = GetLootValueColor(
+                    entry.Price,
+                    entry.PriceMatch,
+                    entry.IsQuestItem);
+                if (_lootEspBoxes.Value)
+                    AddScopeMarkerX(overlay.Lines, screen, color);
+
+                string text = _lootEspNames.Value
+                    ? (entry.Item == null ? "Loot" : entry.Item.Name)
+                    : "";
+                if (_lootEspDistance.Value)
+                    text += (text.Length > 0 ? " | " : "") +
+                            Mathf.Sqrt(distanceSq).ToString("0") + "m";
+                if (_lootEspPrices.Value && entry.Price > 0f)
+                    text += (text.Length > 0 ? " | " : "") +
+                            FormatLootPrice(entry.Price);
+                if (text.Length > 0)
+                    overlay.Text.Add(new TextCommand(
+                        screen + new Vector2(0f, 5f), text, color));
+            }
+
+            for (int i = 0; i < _lootEspClusters.Count; i++)
+            {
+                LootEspCluster cluster = _lootEspClusters[i];
+                if ((cluster.Center - localPosition).sqrMagnitude >
+                    _lootGroupCullDistance.Value *
+                    _lootGroupCullDistance.Value)
+                    continue;
+                Vector2 screen;
+                if (!TryWorldPointToScope(
+                        overlay.Camera, cluster.Center, out screen))
+                    continue;
+                Color color = GetLootValueColor(
+                    cluster.MaximumPrice,
+                    cluster.PriceMatch,
+                    cluster.HasQuestItem);
+                if (_lootEspBoxes.Value)
+                    AddScopeMarkerX(overlay.Lines, screen, color);
+                overlay.Text.Add(new TextCommand(
+                    screen + new Vector2(0f, 5f),
+                    cluster.Count + " nearby items",
+                    color));
+            }
+
+            if (!_lootContainerEsp.Value)
+                return;
+            float containerDistanceSq =
+                _lootContainerCullDistance.Value *
+                _lootContainerCullDistance.Value;
+            Color containerColor = GetContainerEspColor();
+            for (int i = 0; i < _containerEspEntries.Count; i++)
+            {
+                ContainerEspEntry entry = _containerEspEntries[i];
+                if (entry.Container == null ||
+                    !entry.Container.gameObject.activeInHierarchy ||
+                    (entry.Container.transform.position - localPosition)
+                        .sqrMagnitude > containerDistanceSq)
+                    continue;
+
+                Rect rect;
+                Vector3 center = entry.HasWorldBounds
+                    ? entry.WorldBounds.center
+                    : entry.Container.transform.position;
+                Vector2 screen;
+                if (!TryWorldPointToScope(
+                        overlay.Camera, center, out screen))
+                    continue;
+                Color color = entry.HasQuestItem
+                    ? GetQuestItemColor()
+                    : (entry.PriceMatch
+                        ? GetLootEspColor(true)
+                        : containerColor);
+                if (_lootEspBoxes.Value &&
+                    TryWorldBoundsToScopeRect(
+                        overlay.Camera, entry.WorldBounds, out rect))
+                    overlay.Boxes.Add(new BoxCommand(rect, color));
+                float distance = Vector3.Distance(
+                    entry.Container.transform.position, localPosition);
+                string text = entry.Name;
+                if (_lootEspDistance.Value)
+                    text += " | " + distance.ToString("0") + "m";
+                overlay.Text.Add(new TextCommand(
+                    screen + new Vector2(0f, 5f), text, color));
+            }
+        }
+
+        private void AppendScopeExtractionEsp(
+            ScopeOverlay overlay,
+            Vector3 localPosition)
+        {
+            if (_showExtractions == null ||
+                !_showExtractions.Value ||
+                overlay == null ||
+                overlay.Camera == null)
+                return;
+
+            float maxDistanceSq = _maxDistance.Value * _maxDistance.Value;
+            for (int i = 0; i < _extractionPoints.Count; i++)
+            {
+                ExfiltrationPoint point = _extractionPoints[i];
+                if (point == null)
+                    continue;
+                Vector3 position = point.transform.position;
+                float distanceSq = (position - localPosition).sqrMagnitude;
+                if (distanceSq > maxDistanceSq)
+                    continue;
+                Vector2 screen;
+                if (!TryWorldPointToScope(
+                        overlay.Camera, position, out screen))
+                    continue;
+                bool usable = _usableExtractionIds.Contains(
+                    point.GetInstanceID());
+                overlay.Text.Add(new TextCommand(
+                    screen + new Vector2(0f, 5f),
+                    "[EXTRACT] " + GetExtractionName(point) + " | " +
+                    Mathf.Sqrt(distanceSq).ToString("0") + "m" +
+                    (usable ? " | USABLE" : ""),
+                    GetExtractionColor(usable)));
+            }
+        }
+
+        private static bool TryWorldPointToScope(
+            Camera camera,
+            Vector3 world,
+            out Vector2 screen)
+        {
+            screen = default(Vector2);
+            if (camera == null)
+                return false;
+            Vector3 projected = camera.WorldToScreenPoint(world);
+            if (projected.z <= 0f ||
+                float.IsNaN(projected.x) ||
+                float.IsNaN(projected.y))
+                return false;
+            screen = projected;
+            return true;
+        }
+
+        private static void AddScopeMarkerX(
+            List<LineCommand> lines,
+            Vector2 position,
+            Color color)
+        {
+            const float radius = 3f;
+            lines.Add(new LineCommand(
+                position + new Vector2(-radius, -radius),
+                position + new Vector2(radius, radius), color, 2.5f));
+            lines.Add(new LineCommand(
+                position + new Vector2(-radius, radius),
+                position + new Vector2(radius, -radius), color, 2.5f));
+        }
+
+        private static bool TryWorldBoundsToScopeRect(
+            Camera camera,
+            Bounds bounds,
+            out Rect rect)
+        {
+            rect = default(Rect);
+            if (bounds.size == Vector3.zero)
+                return false;
+            Vector3 min = bounds.min;
+            Vector3 max = bounds.max;
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float maxX = float.MinValue;
+            float maxY = float.MinValue;
+            for (int x = 0; x < 2; x++)
+                for (int y = 0; y < 2; y++)
+                    for (int z = 0; z < 2; z++)
+                    {
+                        Vector2 point;
+                        if (!TryWorldPointToScope(
+                                camera,
+                                new Vector3(
+                                    x == 0 ? min.x : max.x,
+                                    y == 0 ? min.y : max.y,
+                                    z == 0 ? min.z : max.z),
+                                out point))
+                            return false;
+                        minX = Mathf.Min(minX, point.x);
+                        minY = Mathf.Min(minY, point.y);
+                        maxX = Mathf.Max(maxX, point.x);
+                        maxY = Mathf.Max(maxY, point.y);
+                    }
+            rect = Rect.MinMaxRect(minX, minY, maxX, maxY);
+            return rect.width >= 4f && rect.height >= 4f;
         }
 
         private void DestroyScopeOverlays()

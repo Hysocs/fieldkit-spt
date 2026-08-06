@@ -66,6 +66,14 @@ namespace FieldKit
                 }
             }
 
+            int overlayDisplay =
+                _legacyEspProjection != null &&
+                _legacyEspProjection.Value
+                    ? 0
+                    : _camera.targetDisplay;
+            if (_canvas.targetDisplay != overlayDisplay)
+                _canvas.targetDisplay = overlayDisplay;
+
             _boxes.Clear();
             _lines.Clear();
             _filledPolygons.Clear();
@@ -157,7 +165,11 @@ namespace FieldKit
                 scopeMask,
                 hasScopeMask,
                 ref labelIndex);
-            AppendExtractionEsp(localPosition, ref labelIndex);
+            AppendExtractionEsp(
+                localPosition,
+                scopeMask,
+                hasScopeMask,
+                ref labelIndex);
 
             for (int i = labelIndex; i < _labels.Count; i++)
                 _labels[i].gameObject.SetActive(false);
@@ -361,18 +373,69 @@ namespace FieldKit
             if (!EnsureBones(target))
                 return false;
 
-            Rect screenRect;
-            if (!TryGetCharacterScreenRect(target, camera, out screenRect))
-                return false;
-
             Vector2 localMin;
             Vector2 localMax;
+            if (_legacyEspProjection != null &&
+                _legacyEspProjection.Value)
+            {
+                Rect screenRect;
+                if (!TryGetCharacterScreenRect(
+                        target, camera, out screenRect) ||
+                    !TryScreenPointToCanvas(
+                        camera, canvasRect, screenRect.min, out localMin) ||
+                    !TryScreenPointToCanvas(
+                        camera, canvasRect, screenRect.max, out localMax))
+                    return false;
+            }
+            else
+            {
+                Vector3 headWorld =
+                    target.Head.position + Vector3.up * 0.15f;
+                Vector3 feetWorld =
+                    (target.LeftFoot.position + target.RightFoot.position) *
+                    0.5f - Vector3.up * 0.05f;
+                Vector2 head;
+                Vector2 feet;
+                if (!TryWorldPointToCanvas(
+                        camera, canvasRect, headWorld, out head) ||
+                    !TryWorldPointToCanvas(
+                        camera, canvasRect, feetWorld, out feet))
+                    return false;
 
-            if (!TryScreenPointToCanvas(
-                    canvasRect, screenRect.min, out localMin) ||
-                !TryScreenPointToCanvas(
-                    canvasRect, screenRect.max, out localMax))
-                return false;
+                float height = Mathf.Abs(head.y - feet.y);
+                Vector3 bodySpan =
+                    target.Head.position -
+                    (target.LeftFoot.position +
+                     target.RightFoot.position) * 0.5f;
+                float horizontalSpan =
+                    new Vector2(bodySpan.x, bodySpan.z).magnitude;
+                if (height >= 3f &&
+                    Mathf.Abs(bodySpan.y) >= horizontalSpan * 0.75f)
+                {
+                    float centerX = (head.x + feet.x) * 0.5f;
+                    float halfWidth = height * 0.22f;
+                    localMin = new Vector2(
+                        centerX - halfWidth,
+                        Mathf.Min(head.y, feet.y));
+                    localMax = new Vector2(
+                        centerX + halfWidth,
+                        Mathf.Max(head.y, feet.y));
+                }
+                else
+                {
+                    float bodyLength = Vector2.Distance(head, feet);
+                    if (bodyLength < 3f)
+                        return false;
+                    float halfThickness =
+                        Mathf.Max(2f, bodyLength * 0.22f);
+                    localMin = new Vector2(
+                        Mathf.Min(head.x, feet.x) - halfThickness,
+                        Mathf.Min(head.y, feet.y) - halfThickness);
+                    localMax = new Vector2(
+                        Mathf.Max(head.x, feet.x) + halfThickness,
+                        Mathf.Max(head.y, feet.y) + halfThickness);
+                }
+            }
 
             rect = Rect.MinMaxRect(
                 localMin.x - 2f,
@@ -723,7 +786,7 @@ namespace FieldKit
                     _currentSkeletonThickness);
         }
 
-        private static void AddWorldLine(
+        private void AddWorldLine(
             Vector3 start,
             Vector3 end,
             Color color,
@@ -735,19 +798,12 @@ namespace FieldKit
             if (camera == null || canvasRect == null)
                 return;
 
-            Vector3 startScreen = camera.WorldToScreenPoint(start);
-            Vector3 endScreen = camera.WorldToScreenPoint(end);
-
-            if (startScreen.z <= 0f || endScreen.z <= 0f)
-                return;
-
             Vector2 startLocal;
             Vector2 endLocal;
-
-            if (!TryScreenPointToCanvas(
-                    canvasRect, startScreen, out startLocal) ||
-                !TryScreenPointToCanvas(
-                    canvasRect, endScreen, out endLocal))
+            if (!TryWorldPointToCanvas(
+                    camera, canvasRect, start, out startLocal) ||
+                !TryWorldPointToCanvas(
+                    camera, canvasRect, end, out endLocal))
                 return;
 
             lines.Add(new LineCommand(
@@ -763,17 +819,14 @@ namespace FieldKit
         {
             if (target.Head == null || target.Neck == null)
                 return;
-            Vector3 head = camera.WorldToScreenPoint(
-                target.Head.position);
-            Vector3 neck = camera.WorldToScreenPoint(
-                target.Neck.position);
             Vector2 center;
             Vector2 neckLocal;
-            if (head.z <= 0f || neck.z <= 0f ||
-                !TryScreenPointToCanvas(
-                    canvasRect, head, out center) ||
-                !TryScreenPointToCanvas(
-                    canvasRect, neck, out neckLocal))
+            if (!TryWorldPointToCanvas(
+                    camera, canvasRect,
+                    target.Head.position, out center) ||
+                !TryWorldPointToCanvas(
+                    camera, canvasRect,
+                    target.Neck.position, out neckLocal))
                 return;
             AddScreenCircle(
                 center,
@@ -809,6 +862,7 @@ namespace FieldKit
         }
 
         private static bool TryScreenPointToCanvas(
+            Camera camera,
             RectTransform canvasRect,
             Vector2 screen,
             out Vector2 local)
@@ -818,6 +872,19 @@ namespace FieldKit
                 Screen.width <= 0 ||
                 Screen.height <= 0)
                 return false;
+
+            // EFT's SSAAImpl shrinks Camera.rect to the internal DLSS render
+            // ratio. WorldToScreenPoint is therefore low-resolution while a
+            // screen-space overlay remains at the full output resolution.
+            // This mirrors EFT's SSAA.RemapToHiRes conversion.
+            if (camera != null &&
+                camera.targetTexture == null &&
+                camera.rect.width > 0f &&
+                camera.rect.height > 0f)
+            {
+                screen.x /= camera.rect.width;
+                screen.y /= camera.rect.height;
+            }
 
             Rect rect = canvasRect.rect;
             local = new Vector2(
@@ -1320,6 +1387,63 @@ namespace FieldKit
             }
 
             return true;
+        }
+
+        private bool TryWorldPointToCanvas(
+            Camera camera,
+            RectTransform canvasRect,
+            Vector3 world,
+            out Vector2 local)
+        {
+            local = default(Vector2);
+            if (camera == null || canvasRect == null)
+                return false;
+
+            Vector3 cameraSpace =
+                camera.transform.InverseTransformPoint(world);
+            float safeNearPlane =
+                Mathf.Max(0.01f, camera.nearClipPlane + 0.01f);
+            if (cameraSpace.z <= safeNearPlane)
+                return false;
+
+            if (_legacyEspProjection != null &&
+                _legacyEspProjection.Value)
+            {
+                Vector3 screen = camera.WorldToScreenPoint(world);
+                if (!IsFiniteScreenPoint(screen) ||
+                    !TryScreenPointToCanvas(
+                        camera, canvasRect, screen, out local))
+                    return false;
+                return IsFiniteCanvasPoint(local);
+            }
+
+            Vector3 viewport = camera.WorldToViewportPoint(world);
+            if (!IsFiniteScreenPoint(viewport))
+                return false;
+
+            Rect canvas = canvasRect.rect;
+            local = new Vector2(
+                canvas.xMin + viewport.x * canvas.width,
+                canvas.yMin + viewport.y * canvas.height);
+            return IsFiniteCanvasPoint(local);
+        }
+
+        private static bool IsFiniteScreenPoint(Vector3 point)
+        {
+            return !float.IsNaN(point.x) &&
+                   !float.IsInfinity(point.x) &&
+                   !float.IsNaN(point.y) &&
+                   !float.IsInfinity(point.y) &&
+                   !float.IsNaN(point.z) &&
+                   !float.IsInfinity(point.z);
+        }
+
+        private static bool IsFiniteCanvasPoint(Vector2 point)
+        {
+            return !float.IsNaN(point.x) &&
+                   !float.IsInfinity(point.x) &&
+                   !float.IsNaN(point.y) &&
+                   !float.IsInfinity(point.y);
         }
 
         private Color GetDisplayColor(Target target)

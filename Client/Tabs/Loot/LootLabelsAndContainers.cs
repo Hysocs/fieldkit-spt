@@ -620,7 +620,7 @@ namespace FieldKit
                         : containerColor);
                 if (_lootEspBoxes.Value)
                 {
-                    if (entry.HasWorldBounds)
+                    if (entry.HasProjectedWorldBounds)
                     {
                         AddContainerBoundsBox(
                             entry,
@@ -705,22 +705,40 @@ namespace FieldKit
             if (entry.Container == null || _camera == null)
                 return false;
 
+            entry.HasProjectedWorldBounds = false;
+
             if (entry.HasWorldBounds &&
                 TryProjectContainerBounds(entry, out rect))
+            {
+                entry.HasProjectedWorldBounds = true;
                 return true;
+            }
 
             bool found = false;
+            Bounds rendererBounds = default(Bounds);
             Renderer[] renderers = entry.Renderers;
             if (renderers != null)
             {
                 for (int i = 0; i < renderers.Length; i++)
                 {
-                    Rect rendererRect;
+                    Rect rendererRect = default(Rect);
                     if (renderers[i] == null ||
                         !renderers[i].gameObject.activeInHierarchy ||
-                        !TryProjectRendererBounds(
-                            renderers[i], _camera, out rendererRect))
+                        ((_legacyEspProjection != null &&
+                          _legacyEspProjection.Value) &&
+                         !TryProjectRendererBoundsToCanvas(
+                            renderers[i], _camera, out rendererRect)))
                         continue;
+                    if (_legacyEspProjection == null ||
+                        !_legacyEspProjection.Value)
+                    {
+                        if (!found)
+                            rendererBounds = renderers[i].bounds;
+                        else
+                            rendererBounds.Encapsulate(renderers[i].bounds);
+                        found = true;
+                        continue;
+                    }
                     rect = !found
                         ? rendererRect
                         : Rect.MinMaxRect(
@@ -733,19 +751,50 @@ namespace FieldKit
             }
 
             if (found)
-                return ConvertLootScreenRectToCanvas(rect, out rect);
+            {
+                if (_legacyEspProjection == null ||
+                    !_legacyEspProjection.Value)
+                {
+                    bool projected = TryProjectWorldBounds(
+                        rendererBounds,
+                        entry.WorldBoundsCorners,
+                        entry.ProjectedBoundsCorners,
+                        out rect);
+                    entry.HasProjectedWorldBounds = projected;
+                    return projected;
+                }
+                return true;
+            }
 
-            Vector3 screen = _camera.WorldToScreenPoint(
-                entry.Container.transform.position);
-            if (screen.z <= 0f)
+            if (_legacyEspProjection != null &&
+                _legacyEspProjection.Value)
+            {
+                Vector3 screen = _camera.WorldToScreenPoint(
+                    entry.Container.transform.position);
+                if (screen.z <= 0f)
+                    return false;
+                return ConvertLootScreenRectToCanvas(
+                    new Rect(
+                        screen.x - 12f,
+                        screen.y - 12f,
+                        24f,
+                        24f),
+                    out rect);
+            }
+
+            Vector2 center;
+            if (!TryWorldPointToCanvas(
+                    _camera,
+                    _canvasRect,
+                    entry.Container.transform.position,
+                    out center))
                 return false;
-            return ConvertLootScreenRectToCanvas(
-                new Rect(
-                    screen.x - 12f,
-                    screen.y - 12f,
-                    24f,
-                    24f),
-                out rect);
+            rect = new Rect(
+                center.x - 12f,
+                center.y - 12f,
+                24f,
+                24f);
+            return true;
         }
 
         private bool TryProjectContainerBounds(
@@ -758,10 +807,22 @@ namespace FieldKit
                 entry == null)
                 return false;
 
-            Bounds bounds = entry.WorldBounds;
+            return TryProjectWorldBounds(
+                entry.WorldBounds,
+                entry.WorldBoundsCorners,
+                entry.ProjectedBoundsCorners,
+                out rect);
+        }
+
+        private bool TryProjectWorldBounds(
+            Bounds bounds,
+            Vector3[] world,
+            Vector2[] projected,
+            out Rect rect)
+        {
+            rect = default(Rect);
             Vector3 min = bounds.min;
             Vector3 max = bounds.max;
-            Vector3[] world = entry.WorldBoundsCorners;
             world[0] = new Vector3(min.x, min.y, min.z);
             world[1] = new Vector3(min.x, min.y, max.z);
             world[2] = new Vector3(min.x, max.y, min.z);
@@ -770,19 +831,16 @@ namespace FieldKit
             world[5] = new Vector3(max.x, min.y, max.z);
             world[6] = new Vector3(max.x, max.y, min.z);
             world[7] = new Vector3(max.x, max.y, max.z);
-            Vector2[] projected = entry.ProjectedBoundsCorners;
             float minX = float.MaxValue;
             float minY = float.MaxValue;
             float maxX = float.MinValue;
             float maxY = float.MinValue;
             for (int i = 0; i < world.Length; i++)
             {
-                Vector3 screen =
-                    _camera.WorldToScreenPoint(world[i]);
-                if (screen.z <= 0f ||
-                    !TryScreenPointToCanvas(
+                if (!TryWorldPointToCanvas(
+                        _camera,
                         _canvasRect,
-                        screen,
+                        world[i],
                         out projected[i]))
                     return false;
 

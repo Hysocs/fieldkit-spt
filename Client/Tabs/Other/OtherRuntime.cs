@@ -10,6 +10,7 @@ namespace FieldKit
 
             UpdateForcedVisionModes();
             UpdateFriendlyAi();
+            UpdateWeatherServerSync();
 
             if (_lastLootLivingAi != _lootLivingAi.Value)
             {

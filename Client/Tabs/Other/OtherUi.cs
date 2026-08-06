@@ -176,6 +176,10 @@ namespace FieldKit
             BeginCategoryPanel("Performance", false);
 
             DrawOptionToggle(
+                _legacyEspProjection,
+                " Legacy ESP projection");
+
+            DrawOptionToggle(
                 _showEntityInspector,
                 " Show entity inspector");
             DrawOptionToggle(

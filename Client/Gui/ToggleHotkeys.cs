@@ -12,6 +12,9 @@ namespace FieldKit
         private ConfigEntry<bool> _toggleAwaitingHotkey;
         private int _toggleHotkeyCaptureStartedFrame = -1;
         private ConfigEntry<KeyboardShortcut> _standaloneAwaitingHotkey;
+        private readonly Dictionary<ConfigEntry<bool>, int>
+            _toggleHotkeyLastFrame =
+                new Dictionary<ConfigEntry<bool>, int>();
 
         private void ConfigureToggleHotkeys()
         {
@@ -61,7 +64,12 @@ namespace FieldKit
 
         private void UpdateToggleHotkeys()
         {
+            bool wasCapturing =
+                _toggleAwaitingHotkey != null ||
+                _standaloneAwaitingHotkey != null;
             CaptureAwaitingToggleHotkey();
+            if (wasCapturing)
+                return;
 
             foreach (KeyValuePair<
                      ConfigEntry<bool>,
@@ -76,10 +84,46 @@ namespace FieldKit
                     continue;
                 }
 
-                if (shortcut.MainKey != KeyCode.None &&
-                    shortcut.IsDown())
-                    pair.Key.Value = !pair.Key.Value;
+                if (Input.GetKeyDown(shortcut.MainKey) &&
+                    AreShortcutModifiersHeld(shortcut))
+                    ToggleFromHotkey(pair.Key);
             }
+        }
+
+        private void HandleToggleHotkeyGuiEvent()
+        {
+            Event current = Event.current;
+            if (current == null ||
+                current.type != EventType.KeyDown ||
+                _toggleAwaitingHotkey != null ||
+                _standaloneAwaitingHotkey != null)
+                return;
+
+            foreach (KeyValuePair<
+                     ConfigEntry<bool>,
+                     ConfigEntry<KeyboardShortcut>> pair
+                     in _toggleHotkeys)
+            {
+                KeyboardShortcut shortcut = pair.Value.Value;
+                if (shortcut.MainKey == KeyCode.None ||
+                    current.keyCode != shortcut.MainKey ||
+                    !AreShortcutModifiersHeld(shortcut))
+                    continue;
+
+                ToggleFromHotkey(pair.Key);
+            }
+        }
+
+        private void ToggleFromHotkey(ConfigEntry<bool> toggle)
+        {
+            int lastFrame;
+            if (_toggleHotkeyLastFrame.TryGetValue(
+                    toggle, out lastFrame) &&
+                lastFrame == Time.frameCount)
+                return;
+
+            _toggleHotkeyLastFrame[toggle] = Time.frameCount;
+            toggle.Value = !toggle.Value;
         }
 
         private void CaptureAwaitingToggleHotkey()

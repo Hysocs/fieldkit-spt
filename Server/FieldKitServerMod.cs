@@ -24,7 +24,7 @@ public record FieldKitServerMetadata : IModMetadata
     public string Author { get; init; } = "Hysocs";
     public List<string>? Contributors { get; init; }
     public SemanticVersioning.Version Version { get; init; } =
-        new("1.2.0");
+        new("1.4.0");
     public SemanticVersioning.Range SptVersion { get; init; } =
         new("~4.1.0");
     public bool HasPrepatcher { get; init; }

@@ -1,7 +1,7 @@
 #if FIELDKIT_WEAPON_ONLY
 namespace FieldKit
 {
-    [BepInPlugin("com.hysocs.fieldkit.weapononly", "FieldKit Weapon Test", "1.2.0")]
+    [BepInPlugin("com.hysocs.fieldkit.weapononly", "FieldKit Weapon Test", "1.4.0")]
     public sealed partial class Plugin : BaseUnityPlugin
     {
         internal static Plugin _instance;

@@ -292,15 +292,11 @@ namespace FieldKit
                     _lootGroupCullDistance.Value *
                     _lootGroupCullDistance.Value)
                     continue;
-                Vector3 centerScreen =
-                    _camera.WorldToScreenPoint(cluster.Center);
                 Vector2 centerLocal;
-                if (centerScreen.z <= 0f ||
-                    !TryScreenPointToCanvas(
+                if (!TryWorldPointToCanvas(
+                        _camera,
                         _canvasRect,
-                        new Vector2(
-                            centerScreen.x,
-                            centerScreen.y),
+                        cluster.Center,
                         out centerLocal))
                 {
                     AppendLootClusterFallback(
@@ -539,13 +535,8 @@ namespace FieldKit
             out Vector2 local)
         {
             local = default(Vector2);
-            Vector3 screen =
-                _camera.WorldToScreenPoint(world);
-            return screen.z > 0f &&
-                TryScreenPointToCanvas(
-                    _canvasRect,
-                    new Vector2(screen.x, screen.y),
-                    out local);
+            return TryWorldPointToCanvas(
+                _camera, _canvasRect, world, out local);
         }
 
         private static Vector3 GetLootMarkerWorldPosition(
@@ -606,10 +597,12 @@ namespace FieldKit
             Vector2 localMin;
             Vector2 localMax;
             if (!TryScreenPointToCanvas(
+                    _camera,
                     _canvasRect,
                     new Vector2(screenRect.xMin, screenRect.yMin),
                     out localMin) ||
                 !TryScreenPointToCanvas(
+                    _camera,
                     _canvasRect,
                     new Vector2(screenRect.xMax, screenRect.yMax),
                     out localMax))
@@ -689,6 +682,7 @@ namespace FieldKit
             public Renderer[] Renderers;
             public Bounds WorldBounds;
             public bool HasWorldBounds;
+            public bool HasProjectedWorldBounds;
             public string Name;
             public string Contents;
             public int MatchingCount;

@@ -3,6 +3,12 @@
 FieldKit is an in-raid administration and testing toolkit for SPT users, server
 administrators, and mod developers.
 
+## Repository layout
+
+- `Client/` — BepInEx client plugin and client project
+- `Server/` — SPT server mod and server project
+- `dist/` — generated release packages
+
 ## Features
 
 - Character controls, including movement and player-state tools
@@ -41,7 +47,7 @@ configuration, or run:
 dotnet build FieldKit.sln -c Release -p:SkipDeploy=true
 ```
 
-The Release solution build creates `dist/FieldKit-1.2.0.zip` with both DLLs in
+The Release solution build creates `dist/FieldKit-1.4.0.zip` with both DLLs in
 the ready-to-install SPT 4.1 directory structure: the client is placed under
 `BepInEx/plugins`, and the server mod under `SPT_Runtime/user/mods`.
 `SkipDeploy=true` prevents the build from copying files into the active SPT

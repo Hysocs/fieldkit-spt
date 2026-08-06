@@ -35,6 +35,9 @@ namespace FieldKit
             DrawOptionToggle(
                 _visibilityCheck, " Visibility Check");
             DrawExtractionEspRow();
+            DrawOptionToggle(
+                _cullWorldEspInScopes,
+                " Cull loot/extractions from scopes");
             if (DrawResetGroupButton())
             {
                 _enabled.Value = true;
@@ -54,6 +57,7 @@ namespace FieldKit
                 _showAimLines.Value = true;
                 _visibilityCheck.Value = true;
                 _showExtractions.Value = true;
+                _cullWorldEspInScopes.Value = false;
                 _extractionColor.Value = "#F59E0BFF";
                 _usableExtractionColor.Value = "#22C55EFF";
                 ResetVisualColors();

@@ -4,7 +4,7 @@ namespace FieldKit
     [BepInPlugin(
         "com.hysocs.fieldkit",
         "Hysocs-FieldKit",
-        "1.2.0")]
+        "1.4.0")]
     public sealed partial class Plugin : BaseUnityPlugin
     {
         internal static ManualLogSource LogSource;
@@ -18,6 +18,7 @@ namespace FieldKit
         private ConfigEntry<bool> _showBones;
         private ConfigEntry<bool> _showAimLines;
         private ConfigEntry<bool> _showExtractions;
+        private ConfigEntry<bool> _cullWorldEspInScopes;
         private ConfigEntry<string> _extractionColor;
         private ConfigEntry<string> _usableExtractionColor;
         private ConfigEntry<bool> _visibilityCheck;

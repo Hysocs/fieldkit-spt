@@ -8,6 +8,7 @@ namespace FieldKit
             "Character",
             "Entities",
             "Loot",
+            "Time/Weather",
             "Other"
         };
 
@@ -272,6 +273,9 @@ namespace FieldKit
                     DrawLootMenu();
                     break;
                 case 3:
+                    DrawWeatherMenu();
+                    break;
+                case 4:
                     DrawOtherMenu();
                     break;
                 default:

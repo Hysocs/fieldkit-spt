@@ -13,6 +13,7 @@ namespace FieldKit
         private ConfigEntry<ForcedVisorMode> _forcedVisorMode;
         private ConfigEntry<bool> _showPerformanceTelemetry;
         private ConfigEntry<bool> _showEntityInspector;
+        private ConfigEntry<bool> _legacyEspProjection;
         private ConfigEntry<string> _menuFontName;
         private ConfigEntry<float> _menuUiScale;
         private float _pendingMenuUiScale;
@@ -62,6 +63,43 @@ namespace FieldKit
         };
         private string _doorToolStatus =
             "Unlocks locked doors without opening them.";
+        private bool _weatherOverrideEnabled;
+        private float _weatherCloud = -1f;
+        private float _weatherFog = 0.0013f;
+        private float _weatherRain = 1f;
+        private float _weatherRainIntensity;
+        private bool _weatherCustomRainIntensity;
+        private float _weatherWindSpeed;
+        private float _weatherWindGustiness;
+        private float _weatherTemperature = 20f;
+        private float _weatherPressure = 770f;
+        private bool _weatherTimeEnabled;
+        private float _weatherHourOfDay = 12f;
+        private float _weatherTimeScale = 1f;
+        private bool _weatherHasServerState;
+        private bool _serverWeatherEnabled;
+        private bool _serverWeatherTimeEnabled;
+        private float _serverWeatherCloud;
+        private float _serverWeatherFog;
+        private float _serverWeatherRain;
+        private float _serverWeatherRainIntensity;
+        private bool _serverWeatherCustomRainIntensity;
+        private float _serverWeatherWindSpeed;
+        private float _serverWeatherWindGustiness;
+        private float _serverWeatherTemperature;
+        private float _serverWeatherPressure;
+        private float _serverWeatherHourOfDay;
+        private float _serverWeatherTimeScale;
+        private long _weatherRevision;
+        private bool _weatherRequestInFlight;
+        private bool _weatherInitialRequestStarted;
+        private Vector2 _weatherMenuScroll;
+        private string _weatherServerStatus =
+            "Waiting for FieldKit server weather state.";
+        private bool _weatherLiveTimeOverrideApplied;
+        private float _weatherOriginalLiveTimeScale = 1f;
+        private DateTime _weatherOriginalLiveGameTime;
+        private DateTime _weatherOriginalLiveRealTime;
 
         private enum ForcedVisorMode
         {
@@ -135,6 +173,11 @@ namespace FieldKit
                 "Show FieldKit Performance",
                 false,
                 "Show rolling CPU timing and cache activity for FieldKit only.");
+            _legacyEspProjection = Config.Bind(
+                "Other",
+                "Legacy ESP Projection",
+                false,
+                "Use the original screen-size-based ESP projection.");
             _showEntityInspector = Config.Bind(
                 "Diagnostics",
                 "Show Entity Inspector",
