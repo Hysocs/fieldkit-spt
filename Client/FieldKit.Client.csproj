@@ -18,7 +18,7 @@
     <Deterministic>true</Deterministic>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.1</SptRoot>
+    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.2</SptRoot>
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.ForceRebuild.g.cs</FieldKitForceRebuildFile>
   </PropertyGroup>

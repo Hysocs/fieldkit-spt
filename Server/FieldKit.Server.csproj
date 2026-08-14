@@ -15,7 +15,7 @@
     <FieldKitForceRebuildDir>$(MSBuildProjectDirectory)\obj\$(Configuration)\$(TargetFramework)</FieldKitForceRebuildDir>
     <FieldKitForceRebuildFile>$(FieldKitForceRebuildDir)\FieldKit.Server.ForceRebuild.g.cs</FieldKitForceRebuildFile>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)\obj\**;$(MSBuildProjectDirectory)\.build\**</DefaultItemExcludes>
-    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.1</SptRoot>
+    <SptRoot Condition="'$(SptRoot)' == ''">C:\SPT\4.1.2</SptRoot>
   </PropertyGroup>
 
   <ItemGroup>
