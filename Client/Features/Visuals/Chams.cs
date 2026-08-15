@@ -87,15 +87,15 @@ namespace FieldKit
                 _lastBossChamVisible = _bossChamColor.Value;
                 _lastBossChamHidden = _bossChamOccludedColor.Value;
                 _lastChamOpacity = _chamsOpacity.Value;
-                _pmcChamMaterials.Update(
+                _pmcChamMaterials.ApplyColors(
                     GetChamColor(EspKind.Pmc),
                     GetChamColor(EspKind.Pmc, true),
                     _chamsOpacity.Value);
-                _scavChamMaterials.Update(
+                _scavChamMaterials.ApplyColors(
                     GetChamColor(EspKind.Scav),
                     GetChamColor(EspKind.Scav, true),
                     _chamsOpacity.Value);
-                _bossChamMaterials.Update(
+                _bossChamMaterials.ApplyColors(
                     GetChamColor(EspKind.Boss),
                     GetChamColor(EspKind.Boss, true),
                     _chamsOpacity.Value);
@@ -125,7 +125,7 @@ namespace FieldKit
             role.LastChamVisible = role.ChamVisibleColor.Value;
             role.LastChamHidden = role.ChamHiddenColor.Value;
             role.LastChamOpacity = _chamsOpacity.Value;
-            role.ChamMaterials.Update(
+            role.ChamMaterials.ApplyColors(
                 GetRoleChamColor(role, false),
                 GetRoleChamColor(role, true),
                 _chamsOpacity.Value);
@@ -443,7 +443,7 @@ namespace FieldKit
             for (int i = 0; i < _worldChamMaterials.Length; i++)
             {
                 WorldChamKind kind = (WorldChamKind)i;
-                _worldChamMaterials[i].Update(GetWorldChamColor(kind));
+                _worldChamMaterials[i].ApplyColor(GetWorldChamColor(kind));
             }
         }
 

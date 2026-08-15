@@ -222,7 +222,7 @@ namespace FieldKit
                     CompareFunction.LessEqual);
             }
 
-            public void Update(Color color)
+            public void ApplyColor(Color color)
             {
                 Material.SetColor("_Color", color);
             }
@@ -248,7 +248,7 @@ namespace FieldKit
                     CompareFunction.Always);
             }
 
-            public void Update(
+            public void ApplyColors(
                 Color visibleColor,
                 Color occludedColor,
                 float opacity)
